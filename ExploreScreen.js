@@ -19,15 +19,49 @@ const exploreData = [
   {
     id: "1",
     title: "First experience in Sense Studio Wangsa Maju",
-    image: require("./assets/interest/stay.png"),
+    image: require("./assets/explore/1.png"),
     user: "ella_03",
+    profileImage: require("./assets/explore/solotravel.png"),
     rating: "100%",
   },
   {
     id: "2",
     title: "Experience Taman ABC Night Market",
-    image: require("./assets/interest/stay.png"),
+    image: require("./assets/explore/2.png"),
     user: "john_24",
+    profileImage: require("./assets/explore/solotravel.png"),
+    rating: "90%",
+  },
+  {
+    id: "3",
+    title: "First experience in Sense Studio Wangsa Maju",
+    image: require("./assets/explore/1.png"),
+    user: "ella_03",
+    profileImage: require("./assets/explore/solotravel.png"),
+    rating: "100%",
+  },
+  {
+    id: "4",
+    title: "Experience Taman ",
+    image: require("./assets/explore/2.png"),
+    user: "john_24",
+    profileImage: require("./assets/explore/solotravel.png"),
+    rating: "90%",
+  },
+  {
+    id: "5",
+    title: "Sense Studio Wangsa Maju",
+    image: require("./assets/explore/1.png"),
+    user: "ella_03",
+    profileImage: require("./assets/explore/solotravel.png"),
+    rating: "100%",
+  },
+  {
+    id: "6",
+    title: "Experience Taman ABC Night Market",
+    image: require("./assets/explore/2.png"),
+    user: "john_24",
+    profileImage: require("./assets/explore/solotravel.png"),
     rating: "90%",
   },
 ];
@@ -73,17 +107,25 @@ const ExploreComponent = () => {
       </View>
 
       {/* Explore Listings */}
-      <FlatList
+      <FlatList 
+        key={selectedCategory}  
+        numColumns={2}
         data={exploreData}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.card}>
             <Image source={item.image} style={styles.image} />
             <Text style={styles.title}>{item.title}</Text>
-            <Text style={styles.subtitle}>Referral by {item.user}</Text>
-            <Text style={styles.rating}>{item.rating}</Text>
+            <View style={styles.userContainer}>
+              <Image source={item.profileImage} style={styles.profileImageSmall} /><Text style={styles.user}>{item.user}</Text>
+              <View style={styles.ratingContainer}>
+                <FontAwesome5 name="arrow-up" size={12} color="#32CD32" />
+                <Text style={styles.rating}>{item.rating}</Text>
+              </View>            
+            </View>
           </View>
         )}
+        columnWrapperStyle={styles.columnWrapper}
       />
     </ScrollView>
   );
@@ -206,39 +248,62 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     borderRadius: 8,
     backgroundColor: "#333",
+    borderWidth: 1,
+    borderColor: "#8A2BE2",
   },
   categoryButtonActive: {
-    backgroundColor: "#800080",
+    backgroundColor: "#8A2BE2",
   },
   categoryText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: 16,    
   },
   card: {
+    width: "49%",
     backgroundColor: "#1a1a1a",
     borderRadius: 10,
-    padding: 12,
-    marginBottom: 10,
+    padding: 0,
+    margin: 2,
   },
   image: {
     width: "100%",
-    height: 150,
+    height: 244,
     borderRadius: 10,
+
   },
   title: {
     color: "#fff",
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: "bold",
+    marginLeft: 10,
+    marginRight: 10,
     marginTop: 10,
   },
-  subtitle: {
+  userContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    margin: 10,
+  },
+  profileImageSmall: {
+    width: 14,
+    height: 14,
+    borderRadius: 14,
+    marginRight: 5,
+  },
+  user: {
     color: "#bbb",
-    fontSize: 14,
+    fontSize: 12,
+    flex: 1,
+  },
+  ratingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   rating: {
     color: "#32CD32",
-    fontSize: 16,
-    marginTop: 5,
+    fontSize: 12,
+    marginLeft: 5,
   },
   questionCard: {
     backgroundColor: "#1a1a1a",
