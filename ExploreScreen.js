@@ -7,10 +7,12 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
+  TextInput,
 } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import { FontAwesome5 } from "@expo/vector-icons";
+import AskLocalScreen from "./AskLocalScreen";
 
 // Categories for filtering
 const categories = ["Recommend", "Stay", "Food", "Attractions"];
@@ -87,9 +89,24 @@ const questionsData = [
 
 const ExploreComponent = () => {
   const [selectedCategory, setSelectedCategory] = useState("Recommend");
+  const [searchQuery, setSearchQuery] = useState("");
 
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
+
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search"
+          placeholderTextColor="#bbb"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+        <TouchableOpacity style={styles.searchIcon}>
+          <FontAwesome5 name="edit" size={20} color="#8A2BE2" />
+        </TouchableOpacity>
+      </View>
       {/* Category Filters */}
       <View style={styles.categoryContainer}>
         {categories.map((category) => (
@@ -106,9 +123,9 @@ const ExploreComponent = () => {
         ))}
       </View>
 
-      {/* Explore Listings */}
-      <FlatList 
-        key={selectedCategory}  
+      {/* 🔥 Use `FlatList` Without `ScrollView` */}
+      <FlatList
+        key={selectedCategory}
         numColumns={2}
         data={exploreData}
         keyExtractor={(item) => item.id}
@@ -117,19 +134,22 @@ const ExploreComponent = () => {
             <Image source={item.image} style={styles.image} />
             <Text style={styles.title}>{item.title}</Text>
             <View style={styles.userContainer}>
-              <Image source={item.profileImage} style={styles.profileImageSmall} /><Text style={styles.user}>{item.user}</Text>
+              <Image source={item.profileImage} style={styles.profileImageSmall} />
+              <Text style={styles.user}>{item.user}</Text>
               <View style={styles.ratingContainer}>
                 <FontAwesome5 name="arrow-up" size={12} color="#32CD32" />
                 <Text style={styles.rating}>{item.rating}</Text>
-              </View>            
+              </View>
             </View>
           </View>
         )}
         columnWrapperStyle={styles.columnWrapper}
+        contentContainerStyle={{ paddingBottom: 5 }} // Add spacing to prevent UI cutting off
       />
-    </ScrollView>
+    </View>
   );
 };
+
 
 const QuestionsComponent = () => {
   return (
@@ -164,7 +184,7 @@ const TopTabNavigator = () => {
   return (
     <TopTab.Navigator
       screenOptions={{
-        tabBarStyle: { backgroundColor: "#000" },
+        tabBarStyle: { backgroundColor: "#000", paddingTop: 40 },
         tabBarIndicatorStyle: { backgroundColor: "#8A2BE2" },
         tabBarLabelStyle: { color: "white", fontSize: 16, fontWeight: "bold" },
       }}
@@ -182,37 +202,47 @@ export default function ExploreScreen() {
   return (
     <BottomTab.Navigator
       screenOptions={{
-        tabBarStyle: styles.tabBar,
-        tabBarActiveTintColor: "purple",
+        tabBarStyle: {
+          ...styles.tabBar,
+        },
+        tabBarActiveTintColor: "#8A2BE2",
         tabBarInactiveTintColor: "gray",
         headerShown: false,
       }}
     >
+
       <BottomTab.Screen
-        name="TravelConnect"
+        name="Home"
+        component={TopTabNavigator}
+        options={{
+          tabBarIcon: ({ color }) =>
+
+            <FontAwesome5 name="home" size={20} color={color} />,
+
+        }}
+      />
+
+      <BottomTab.Screen
+        name="Connect"
         component={TopTabNavigator}
         options={{
           tabBarIcon: ({ color }) => <FontAwesome5 name="globe" size={20} color={color} />,
         }}
       />
       <BottomTab.Screen
-        name="Service"
-        component={TopTabNavigator}
-        options={{
-          tabBarIcon: ({ color }) => <FontAwesome5 name="cogs" size={20} color={color} />,
-        }}
-      />
-      <BottomTab.Screen
         name="Questions"
-        component={TopTabNavigator}
+        component={AskLocalScreen}
         options={{
           tabBarIcon: ({ color }) => (
             <View style={styles.centerIcon}>
-              <FontAwesome5 name="question-circle" size={24} color="white" />
+              <Text style={styles.centerIconText}>Q</Text>
             </View>
           ),
+          tabBarLabel: "",
         }}
       />
+
+
       <BottomTab.Screen
         name="Chat"
         component={TopTabNavigator}
@@ -236,7 +266,24 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#000",
-    padding: 16,
+    padding: 10,
+  },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#1a1a1a",
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    marginBottom: 16,
+  },
+  searchInput: {
+    flex: 1,
+    color: "#fff",
+    fontSize: 16,
+    paddingVertical: 10,
+  },
+  searchIcon: {
+    marginLeft: 10,
   },
   categoryContainer: {
     flexDirection: "row",
@@ -244,9 +291,9 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   categoryButton: {
-    paddingVertical: 10,
+    paddingVertical: 5,
     paddingHorizontal: 15,
-    borderRadius: 8,
+    borderRadius: 10,
     backgroundColor: "#333",
     borderWidth: 1,
     borderColor: "#8A2BE2",
@@ -256,7 +303,7 @@ const styles = StyleSheet.create({
   },
   categoryText: {
     color: "#fff",
-    fontSize: 16,    
+    fontSize: 14,
   },
   card: {
     width: "49%",
@@ -341,8 +388,17 @@ const styles = StyleSheet.create({
     backgroundColor: "#000",
   },
   centerIcon: {
-    backgroundColor: "#8A2BE2",
-    padding: 10,
-    borderRadius: 30,
+    width: 45,  // Adjust size as needed
+    height: 45,
+    backgroundColor: "#A64DFF", // Purple background
+    borderRadius: 10, // Rounded square
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: -15,
+  },
+  centerIconText: {
+    color: "white",
+    fontSize: 30,
+    fontWeight: "bold",
   },
 });

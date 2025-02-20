@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet } from "react-native";
+import { useNavigation } from "@react-navigation/native"; // Import useNavigation
 
 const interests = [
   { id: "1", name: "Attractions", image: require("./assets/interest/attractions.png") },
@@ -25,6 +26,7 @@ const interests = [
 
 export default function RecommendationScreen() {
   const [selectedInterests, setSelectedInterests] = useState([]);
+  const navigation = useNavigation(); // Get the navigation object
 
   const toggleSelection = (id) => {
     setSelectedInterests((prev) =>
@@ -47,9 +49,11 @@ export default function RecommendationScreen() {
           </TouchableOpacity>
         )}
       />
-      <TouchableOpacity style={styles.button} onPress={() => console.log("Selected Interests:", selectedInterests)}>
-                <Text style={styles.buttonText}>Confirm Selection</Text>
-              </TouchableOpacity>
+      <TouchableOpacity style={styles.button}
+        onPress={() => navigation.navigate("Explore")} // Navigate to ExploreScreen
+      >
+        <Text style={styles.buttonText}>Confirm Selection</Text>
+      </TouchableOpacity>
     </View>
   );
 }

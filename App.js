@@ -6,6 +6,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from './LoginScreen';
 import RecommendationScreen from './RecommendationScreen';
 import ExploreScreen from './ExploreScreen';
+import AskLocalScreen from './AskLocalScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -15,9 +16,10 @@ export default function App() {
     <StatusBar style="dark" />
     <NavigationContainer>
       <Stack.Navigator screenOptions={{headerShown: false}}>
-        {/* <Stack.Screen name="Explore" component={ExploreScreen}/> */}
-        <Stack.Screen name="Login" component={LoginScreen}/>
-        {/* <Stack.Screen name="Recommendation" component={RecommendationScreen}/> */}
+      <Stack.Screen name="Login" component={LoginScreen}/>
+      <Stack.Screen name="Recommendation" component={RecommendationScreen}/>
+        <Stack.Screen name="Explore" component={ExploreScreen}/>  
+        <Stack.Screen name="AskLocal" component={AskLocalScreen}/>
       </Stack.Navigator>
     </NavigationContainer>
     </>
