@@ -7,6 +7,7 @@ import LoginScreen from './LoginScreen';
 import RecommendationScreen from './RecommendationScreen';
 import ExploreScreen from './ExploreScreen';
 import AskLocalScreen from './AskLocalScreen';
+import ContentGPT from './ContentGPT';
 
 const Stack = createNativeStackNavigator();
 
@@ -20,6 +21,7 @@ export default function App() {
       <Stack.Screen name="Recommendation" component={RecommendationScreen}/>
         <Stack.Screen name="Explore" component={ExploreScreen}/>  
         <Stack.Screen name="AskLocal" component={AskLocalScreen}/>
+        <Stack.Screen name="ContentGPT" component={ContentGPT}/>
       </Stack.Navigator>
     </NavigationContainer>
     </>

@@ -9,15 +9,15 @@ import {
   Switch,
 } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+
 
 const AskLocalScreen = ({ navigation }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [isPublic, setIsPublic] = useState(true);
 
   return (
     <View style={styles.container}>
-      {/* Header Section */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <FontAwesome5 name="arrow-left" size={20} color="white" />
@@ -26,10 +26,9 @@ const AskLocalScreen = ({ navigation }) => {
       </View>
 
       <View style={{ flex: 1 }}>
-        {/* Image Upload Section */}
         <View style={styles.imageUploadContainer}>
           <Image
-            source={require("./assets/explore/1.png")} // Placeholder image
+            source={require("./assets/explore/1.png")}
             style={styles.uploadedImage}
           />
           <TouchableOpacity style={styles.uploadButton}>
@@ -37,7 +36,6 @@ const AskLocalScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        {/* Title Input */}
         <TextInput
           style={styles.titleInput}
           placeholder="Add a title"
@@ -46,7 +44,6 @@ const AskLocalScreen = ({ navigation }) => {
           onChangeText={setTitle}
         />
 
-        {/* Description Input */}
         <TextInput
           style={styles.descriptionInput}
           placeholder="Add text"
@@ -56,14 +53,12 @@ const AskLocalScreen = ({ navigation }) => {
           onChangeText={setDescription}
         />
 
-        {/* Interactive Options */}
         <View style={styles.optionsContainer}>
           <TouchableOpacity style={styles.optionButton}>
             <Text style={styles.optionText}># Topic</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Location & Privacy Settings */}
         <View style={styles.locationPrivacyContainer}>
           <TouchableOpacity style={styles.locationButton}>
             <FontAwesome5 name="map-marker-alt" size={16} color="#8A2BE2" />
@@ -72,9 +67,11 @@ const AskLocalScreen = ({ navigation }) => {
         </View>
       </View>
 
-      {/* Bottom Action Buttons */}
       <View style={styles.bottomActions}>
-        <TouchableOpacity style={styles.contentGptButton}>
+      <TouchableOpacity 
+          style={styles.contentGptButton}
+          onPress={() => navigation.navigate('ContentGPT')}
+        >
           <View style={styles.iconContainer}>
             <FontAwesome5 name="magic" size={14} color="white" />
           </View>
@@ -88,7 +85,6 @@ const AskLocalScreen = ({ navigation }) => {
   );
 };
 
-// Styles
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -98,7 +94,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center", // Center the content horizontally
+    justifyContent: "center",
     marginBottom: 10,
     paddingTop: 40,
   },
@@ -107,8 +103,8 @@ const styles = StyleSheet.create({
     fontSize: 20,
     marginLeft: 10,
     fontWeight: "bold",
-    flex: 1, // Allow the text to take up available space
-    textAlign: "center", // Center the text within its container
+    flex: 1,
+    textAlign: "center",
   },
   uploadedImage: {
     width: 80,
@@ -197,15 +193,15 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     backgroundColor: "#1a1a1a",
-    borderRadius: 15, // Makes it a perfect circle
+    borderRadius: 15,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 6, // Spacing between icon and text
+    marginBottom: 6,
   },
   contentGptText: {
     color: "white",
     fontSize: 10,
-    textAlign: "center", // Ensure text is centered
+    textAlign: "center",
   },
   postButton: {
     backgroundColor: "#FF4444",
