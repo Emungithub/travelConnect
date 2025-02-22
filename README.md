@@ -42,6 +42,7 @@ npm install @react-navigation/native-stack
 npm install @react-navigation/bottom-tabs
 npm install @react-navigation/material-top-tabs
 npx expo install react-native-pager-view
+npm install react-native-dotenv
 ```
 
 ### 3️⃣ Running the Project

@@ -17,11 +17,12 @@ export default function App() {
     <StatusBar style="dark" />
     <NavigationContainer>
       <Stack.Navigator screenOptions={{headerShown: false}}>
-      <Stack.Screen name="Login" component={LoginScreen}/>
-      <Stack.Screen name="Recommendation" component={RecommendationScreen}/>
+      {/* <Stack.Screen name="Login" component={LoginScreen}/> */}
+      {/* <Stack.Screen name="Recommendation" component={RecommendationScreen}/> */}
         <Stack.Screen name="Explore" component={ExploreScreen}/>  
         <Stack.Screen name="AskLocal" component={AskLocalScreen}/>
         <Stack.Screen name="ContentGPT" component={ContentGPT}/>
+
       </Stack.Navigator>
     </NavigationContainer>
     </>
