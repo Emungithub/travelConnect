@@ -77,7 +77,7 @@ const AskLocalScreen = ({ navigation }) => {
           </View>
           <Text style={styles.contentGptText}>Content GPT</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.postButton}>
+        <TouchableOpacity style={styles.postButton}  onPress={() => navigation.navigate("SimilarQuestionDetection")}>
           <Text style={styles.postButtonText}>Post</Text>
         </TouchableOpacity>
       </View>
