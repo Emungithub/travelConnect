@@ -13,7 +13,9 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import { FontAwesome5 } from "@expo/vector-icons";
 import AskLocalScreen from "./AskLocalScreen";
-
+import ConnectPage from "./ConnectPage";
+import ChatList from "./ChatList";
+import { useNavigation } from "@react-navigation/native";
 // Categories for filtering
 const categories = ["Recommend", "Stay", "Food", "Attractions"];
 
@@ -22,7 +24,7 @@ const exploreData = [
     id: "1",
     title: "First experience in Sense Studio Wangsa Maju",
     image: require("./assets/explore/1.png"),
-    user: "ella_03",
+    user: "emun_03",
     profileImage: require("./assets/explore/solotravel.png"),
     rating: "100%",
   },
@@ -30,7 +32,7 @@ const exploreData = [
     id: "2",
     title: "Experience Taman ABC Night Market",
     image: require("./assets/explore/2.png"),
-    user: "john_24",
+    user: "test_24",
     profileImage: require("./assets/explore/solotravel.png"),
     rating: "90%",
   },
@@ -71,8 +73,11 @@ const exploreData = [
 const questionsData = [
   {
     id: "1",
-    tag: "Chinese",
+    tag: "China",
+    user: "test_24",
     priority: "Priority",
+    vvip: "VVIP",
+    profileImage: require("./assets/explore/solotravel.png"),
     question: "Please recommend Penang nearby cheap accommodation?",
     details: "I'm staying nearby Wangsa Maju area and would love a suggestion.",
     answers: 0,
@@ -80,7 +85,10 @@ const questionsData = [
   {
     id: "2",
     tag: "Korean",
+    user: "emun_03",
     priority: null,
+    vvip: null,
+    profileImage: require("./assets/explore/solotravel.png"),
     question: "Any hidden cafe in Kuala Lumpur?",
     details: "Please recommend the best food in Setapak area.",
     answers: 20,
@@ -88,6 +96,7 @@ const questionsData = [
 ];
 
 const ExploreComponent = () => {
+  const navigation = useNavigation();
   const [selectedCategory, setSelectedCategory] = useState("Recommend");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -95,18 +104,21 @@ const ExploreComponent = () => {
     <View style={styles.container}>
 
       {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search"
-          placeholderTextColor="#bbb"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-        <TouchableOpacity style={styles.searchIcon}>
+      <View style={styles.searchContainerBig}>
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search"
+            placeholderTextColor="#bbb"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+        <TouchableOpacity style={styles.searchIcon} onPress={() => navigation.navigate("AskLocal", { title: "New Post", button: "Post" })}>
           <FontAwesome5 name="edit" size={20} color="#8A2BE2" />
         </TouchableOpacity>
       </View>
+
       {/* Category Filters */}
       <View style={styles.categoryContainer}>
         {categories.map((category) => (
@@ -152,12 +164,125 @@ const ExploreComponent = () => {
 
 
 const QuestionsComponent = () => {
+  const navigation = useNavigation();
+  const [selectedCategory, setSelectedCategory] = useState("Recommend");
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
+
+  const [searchQuery, setSearchQuery] = useState("");
   return (
     <ScrollView style={styles.container}>
+      {/* Search Bar */}
+      <View style={styles.searchContainerBig}>
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search"
+            placeholderTextColor="#bbb"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+        <TouchableOpacity style={styles.searchIcon} onPress={() => navigation.navigate("AskLocal", { title: "New Post", button: "Post" })}>
+          <FontAwesome5 name="edit" size={20} color="#8A2BE2" />
+        </TouchableOpacity>
+      </View>
       {/* Category Filters */}
       <View style={styles.categoryContainer}>
         {categories.map((category) => (
-          <TouchableOpacity key={category} style={styles.categoryButton}>
+          <TouchableOpacity
+            key={category}
+            onPress={() => setSelectedCategory(category)}
+            style={[
+              styles.categoryButton,
+              selectedCategory === category && styles.categoryButtonActive,
+            ]}
+          >
+            <Text style={styles.categoryText}>{category}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* List of Questions */}
+      {questionsData.map((item) => (
+        <View key={item.id} style={styles.questionCard}>
+          <View style={styles.cardHeader}>
+            <View style={styles.profileContainer}>
+              <Image source={item.profileImage} style={styles.profileImageQuestion} />
+              <Image
+                source={
+                  item.tag === "China"
+                    ? require("./assets/flag/china.png")
+                    : item.tag === "Korean"
+                      ? require("./assets/flag/korea.png")
+                      : null
+                }
+                style={styles.flagIcon}
+              />
+            </View>
+            <View style={styles.textContainer}>
+              <View style={styles.tagRow}>
+                <Text style={styles.user}>{item.user}   {item.priority && <Text style={styles.questionTag}>{item.vvip}</Text>}
+                </Text>
+                {item.priority && <Text style={styles.priority}>{item.priority}</Text>}
+              </View>
+              <Text style={styles.questionTitle}>{item.question}</Text>
+            </View>
+          </View>
+          <Text style={styles.questionDetails}>{item.details}</Text>
+          <View style={styles.answerContainer}>
+            <TouchableOpacity
+              style={[
+                styles.answerButton,
+                selectedAnswer === item.id && styles.answerButtonActive,
+              ]}
+              onPress={() => {
+                setSelectedAnswer(item.id);
+                navigation.navigate("AskLocal");
+              }}
+            >
+              <FontAwesome5 name="comment" size={14} color="#bbb" />
+              <Text style={styles.answers}>Answer {item.answers}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      ))}
+    </ScrollView>
+  );
+};
+
+const SideBar = () => {
+  const navigation = useNavigation();
+  const [selectedCategory, setSelectedCategory] = useState("Recommend");
+
+  const [searchQuery, setSearchQuery] = useState("");
+  return (
+    <ScrollView style={styles.container}>
+      {/* Search Bar */}
+      <View style={styles.searchContainerBig}>
+        <View style={styles.searchContainer}>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search"
+            placeholderTextColor="#bbb"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+        <TouchableOpacity style={styles.searchIcon} onPress={() => navigation.navigate("AskLocal", { title: "New Post", button: "Post" })}>
+          <FontAwesome5 name="edit" size={20} color="#8A2BE2" />
+        </TouchableOpacity>
+      </View>
+      {/* Category Filters */}
+      <View style={styles.categoryContainer}>
+        {categories.map((category) => (
+          <TouchableOpacity
+            key={category}
+            onPress={() => setSelectedCategory(category)}
+            style={[
+              styles.categoryButton,
+              selectedCategory === category && styles.categoryButtonActive,
+            ]}
+          >
             <Text style={styles.categoryText}>{category}</Text>
           </TouchableOpacity>
         ))}
@@ -189,6 +314,7 @@ const TopTabNavigator = () => {
         tabBarLabelStyle: { color: "white", fontSize: 16, fontWeight: "bold" },
       }}
     >
+      {/* <TopTab.Screen name="SideBar" component={SideBar} /> */}
       <TopTab.Screen name="Explore" component={ExploreComponent} />
       <TopTab.Screen name="Questions" component={QuestionsComponent} />
     </TopTab.Navigator>
@@ -199,6 +325,7 @@ const TopTabNavigator = () => {
 const BottomTab = createBottomTabNavigator();
 
 export default function ExploreScreen() {
+
   return (
     <BottomTab.Navigator
       screenOptions={{
@@ -224,7 +351,7 @@ export default function ExploreScreen() {
 
       <BottomTab.Screen
         name="Connect"
-        component={TopTabNavigator}
+        component={ConnectPage}
         options={{
           tabBarIcon: ({ color }) => <FontAwesome5 name="globe" size={20} color={color} />,
         }}
@@ -243,9 +370,10 @@ export default function ExploreScreen() {
       />
 
 
+
       <BottomTab.Screen
         name="Chat"
-        component={TopTabNavigator}
+        component={ChatList}
         options={{
           tabBarIcon: ({ color }) => <FontAwesome5 name="comments" size={20} color={color} />,
         }}
@@ -274,6 +402,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#1a1a1a",
     borderRadius: 10,
     paddingHorizontal: 10,
+    width: "90%",
+  },
+  searchContainerBig: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 10,
     marginBottom: 16,
   },
   searchInput: {
@@ -283,7 +417,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   searchIcon: {
-    marginLeft: 10,
+    padding: 10,
   },
   categoryContainer: {
     flexDirection: "row",
@@ -332,11 +466,32 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     margin: 10,
   },
+  profileContainer: {
+    position: "relative",
+  },
+  profileImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+  },
+  flagIcon: {
+    width: 15,
+    height: 15,
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    borderRadius: 8,
+  },
   profileImageSmall: {
     width: 14,
     height: 14,
     borderRadius: 14,
     marginRight: 5,
+  },
+  profileImageQuestion: {
+    width: 53,
+    height: 53,
+    borderRadius: 30,
   },
   user: {
     color: "#bbb",
@@ -358,10 +513,29 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 10,
   },
+  cardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  profileImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 10,
+  },
+  textContainer: {
+    flex: 1,
+    marginLeft: 10,
+  },
+  tagRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   questionTag: {
     color: "#8A2BE2",
     fontSize: 14,
     fontWeight: "bold",
+    marginRight: 5,
   },
   priority: {
     color: "#FF4500",
@@ -372,17 +546,38 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
-    marginTop: 8,
+    marginTop: 5,
   },
   questionDetails: {
     color: "#bbb",
     fontSize: 14,
     marginTop: 5,
   },
+  answerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+  },
+  answerButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    marginTop: 8,
+    backgroundColor: "#435345",
+    paddingVertical: 5,
+    paddingHorizontal: 15,
+    borderRadius: 10,
+    backgroundColor: "#333",
+    borderWidth: 1,
+    borderColor: "#8A2BE2",
+  },
+  answerButtonActive: {
+    backgroundColor: "#8A2BE2",
+  },
   answers: {
-    color: "#32CD32",
+    color: "#FFFFFF",
     fontSize: 14,
-    marginTop: 5,
+    marginLeft: 5,
   },
   tabBar: {
     backgroundColor: "#000",

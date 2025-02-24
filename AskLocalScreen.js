@@ -9,12 +9,15 @@ import {
   Switch,
 } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 
 
 const AskLocalScreen = ({ navigation }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const route = useRoute();
+  const screenTitle = route.params?.title || "Ask Local";
+  const screenButton = route.params?.button || "Ask";
 
   return (
     <View style={styles.container}>
@@ -22,7 +25,7 @@ const AskLocalScreen = ({ navigation }) => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <FontAwesome5 name="arrow-left" size={20} color="white" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Ask Local</Text>
+        <Text style={styles.headerTitle}>{screenTitle}</Text>
       </View>
 
       <View style={{ flex: 1 }}>
@@ -78,7 +81,7 @@ const AskLocalScreen = ({ navigation }) => {
           <Text style={styles.contentGptText}>Content GPT</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.postButton}  onPress={() => navigation.navigate("SimilarQuestionDetection")}>
-          <Text style={styles.postButtonText}>Post</Text>
+          <Text style={styles.postButtonText}>{screenButton}</Text>
         </TouchableOpacity>
       </View>
     </View>

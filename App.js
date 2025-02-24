@@ -11,6 +11,7 @@ import ContentGPT from './ContentGPT';
 import ConnectPage from "./ConnectPage";
 import DetailsPage from "./DetailsPage";
 import SimilarQuestionDetection from './SimilarQuestionDetection';
+import ChatList from './ChatList';
 
 const Stack = createNativeStackNavigator();
 
@@ -28,6 +29,7 @@ export default function App() {
           <Stack.Screen name="ConnectPage" component={ConnectPage} />
           <Stack.Screen name="DetailsPage" component={DetailsPage} />
           <Stack.Screen name="SimilarQuestionDetection" component={SimilarQuestionDetection} />
+          <Stack.Screen name="ChatList" component={ChatList} />
         </Stack.Navigator>
       </NavigationContainer>
     </>

@@ -78,7 +78,7 @@ const ContentGPT = ({ navigation }) => {
                 </TouchableOpacity>
                 <TextInput
                     style={styles.input}
-                    placeholder="Message ChatGPT"
+                    placeholder="Message ContentGPT"
                     placeholderTextColor="#888"
                     value={inputText}
                     onChangeText={setInputText}

@@ -33,8 +33,9 @@ Clone the repository:
 git clone https://github.com/your-repo/travelconnect.git
 cd travelconnect
 ```
-#### Extra react installation
+#### 1.Extra react installation
 ```bash
+npm install
 npm install @react-navigation/native-stack
 npm install @react-navigation/stack
 npx expo install react-native-gesture-handler
@@ -49,6 +50,29 @@ npm install react-native-dotenv
 Start the Expo development server:
 ```bash
 npm start
+```
+
+#### If found error when running react native expo app
+error: Android Bundling failed 6279ms index.js (1020 modules) ERROR node_modules\react-native\Libraries\Debugging\DebuggingOverlayRegistry.js: C:\Eemun\travelConnect\node_modules\react-native\Libraries\Debugging\DebuggingOverlayRegistry.js: Class private methods are not enabled. Please add @babel/plugin-transform-private-methods to your configuration. 117 | }; 118 |
+
+To resolve the error, you need to add the @babel/plugin-transform-private-methods plugin to your Babel configuration. Additionally, ensure that the loose mode is consistent across all necessary plugins.
+```bash
+module.exports = {
+  presets: ["module:metro-react-native-babel-preset"],
+  plugins: [
+    ['module:react-native-dotenv', {
+      moduleName: '@env',
+      path: '.env',
+    }],
+    ['@babel/plugin-transform-class-properties', { loose: true }],
+    ['@babel/plugin-transform-private-methods', { loose: true }],
+    ['@babel/plugin-transform-private-property-in-object', { loose: true }]
+  ],
+};
+```
+After updating the configuration, restart your server and clear the bundler cache if necessary. You can do this by running:
+```bash
+npx cross-env BABEL_SHOW_CONFIG_FOR=C:/Eemun/travelConnect/index.js npm start --clear
 ```
 
 ### 4️⃣ Backend Setup
