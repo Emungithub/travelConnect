@@ -62,10 +62,10 @@ const SimilarQuestionDetection = ({ route }) => {
                         {selectedQuestion?.id === item.id && selectedQuestion.answer && (
                             <View style={styles.answerContainer}>
                                 <View style={styles.questionContainer}>
-                                <View style={styles.centerIcon}>
-                                    <Text style={styles.centerIconText}>A</Text>
-                                </View>
-                                <Text style={styles.answerTitle}>{selectedQuestion.title}</Text>
+                                    <View style={styles.centerIcon}>
+                                        <Text style={styles.centerIconText}>A</Text>
+                                    </View>
+                                    <Text style={styles.answerTitle}>{selectedQuestion.title}</Text>
                                 </View>
                                 {selectedQuestion.answer.map((ans, index) => (
                                     <Text key={index} style={styles.answerText}>{ans}</Text>
@@ -78,7 +78,7 @@ const SimilarQuestionDetection = ({ route }) => {
 
             <TouchableOpacity
                 style={styles.postButton}
-                onPress={() => navigation.navigate("AskLocalScreen")}
+                onPress={() => navigation.navigate("AskLocal")}
             >
                 <Text style={styles.postButtonText}>Continue to post</Text>
             </TouchableOpacity>
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
         marginBottom: 5,
     },
     postButton: {
-        backgroundColor: "#FF4444",
+        backgroundColor: "#A64DFF",
         paddingVertical: 12,
         borderRadius: 30,
         alignItems: "center",
@@ -179,6 +179,24 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: "bold",
     },
+    modalContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "rgba(0, 0, 0, 0.7)",
+      },
+      modalContent: {
+        backgroundColor: "#222",
+        padding: 20,
+        borderRadius: 10,
+        width: "90%",
+      },
+      modalTitle: {
+        color: "white",
+        fontSize: 18,
+        fontWeight: "bold",
+        marginBottom: 10,
+      },
 });
 
 export default SimilarQuestionDetection;

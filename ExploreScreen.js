@@ -230,6 +230,9 @@ const QuestionsComponent = () => {
           </View>
           <Text style={styles.questionDetails}>{item.details}</Text>
           <View style={styles.answerContainer}>
+            <TouchableOpacity onPress={() => navigation.navigate("ContentGPT")} style={styles.translateButton}>
+              <Image source={require("./assets/translate.png")}  />
+            </TouchableOpacity>
             <TouchableOpacity
               style={[
                 styles.answerButton,
@@ -578,6 +581,12 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 14,
     marginLeft: 5,
+  },
+  translateButton:{
+    paddingTop: 5,
+    paddingRight: 10,
+    justifyContent: "center",
+    alignItems: "center",
   },
   tabBar: {
     backgroundColor: "#000",

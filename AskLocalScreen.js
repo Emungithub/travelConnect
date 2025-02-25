@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   Switch,
+  Modal,
+  ScrollView
 } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
@@ -15,10 +17,53 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 const AskLocalScreen = ({ navigation }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [showSimilarQuestions, setShowSimilarQuestions] = useState(true);
+  const [showPriorityModal, setShowPriorityModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [selectedQuestion, setSelectedQuestion] = useState(null);
+  const [priorityLevel, setPriorityLevel] = useState("Low");
   const route = useRoute();
   const screenTitle = route.params?.title || "Ask Local";
   const screenButton = route.params?.button || "Ask";
 
+  const similarQuestions = [
+    {
+      id: 1,
+      title: "Vegetarian food options near Setapak after 10 PM",
+      answer: [
+        "Hi, my favourite to-go vegetarian food opens till 11pm. It’s called Mamakim...",
+        "There is a vegetarian restaurant near Bukit Bintang and it closes at 10pm. It’s ...",
+        "There is a vegetarian restaurant near Bukit Bintang and it closes at 10pm. It’s ...",
+      ],
+    },
+    {
+      id: 2,
+      title: "Recommendation for pet-friendly vegetarian food in Kuala Lumpur area",
+      answer: [
+        "Hi, my favourite to-go vegetarian food opens till 11pm. It’s called Mamakim...",
+        "There is a vegetarian restaurant near Bukit Bintang and it closes at 10pm. It’s ...",
+      ],
+    },
+    {
+      id: 3,
+      title: "Late-night vegetarian-friendly restaurants in KL",
+      answer: [
+        "Hi, my favourite to-go vegetarian food opens till 11pm. It’s called Mamakim...",
+        "There is a vegetarian restaurant near Bukit Bintang and it closes at 10pm. It’s ...",
+      ],
+    },
+  ];
+
+  // Simulated function to determine priority level
+  const determinePriority = () => {
+    if (title.length > 20 || description.length > 100) {
+      return "High";
+    } else if (title.length > 10 || description.length > 50) {
+      return "Medium";
+    } else {
+      return "Low";
+    }
+  };
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -71,7 +116,7 @@ const AskLocalScreen = ({ navigation }) => {
       </View>
 
       <View style={styles.bottomActions}>
-      <TouchableOpacity 
+        <TouchableOpacity
           style={styles.contentGptButton}
           onPress={() => navigation.navigate('ContentGPT')}
         >
@@ -80,10 +125,88 @@ const AskLocalScreen = ({ navigation }) => {
           </View>
           <Text style={styles.contentGptText}>Content GPT</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.postButton}  onPress={() => navigation.navigate("SimilarQuestionDetection")}>
+        <TouchableOpacity style={styles.postButton} onPress={() => setShowSimilarQuestions(true)}>
           <Text style={styles.postButtonText}>{screenButton}</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Similar Question Modal */}
+      <Modal visible={showSimilarQuestions} animationType="slide" transparent={true}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <View style={styles.questionContainer}>
+              <View style={styles.centerIcon}>
+                <Text style={styles.centerIconText}>Q</Text>
+              </View>
+              <Text style={styles.modalTitle}>Similar Questions found!</Text>
+            </View>
+            <ScrollView style={styles.listContainer}>
+              {similarQuestions.map((item) => (
+                <View key={item.id}>
+                  <TouchableOpacity style={styles.questionItem} onPress={() => setSelectedQuestion(item)}>
+                    <Text style={styles.questionText}>{item.title}</Text>
+                  </TouchableOpacity>
+                  {selectedQuestion?.id === item.id && selectedQuestion.answer && (
+                    <View style={styles.answerContainer}>
+                      <View style={styles.questionContainer}>
+                        <View style={styles.centerIcon}>
+                          <Text style={styles.centerIconText}>A</Text>
+                        </View>
+                        <Text style={styles.answerTitle}>{selectedQuestion.title}</Text>
+                      </View>
+                      {selectedQuestion.answer.map((ans, index) => (
+                        <Text key={index} style={styles.answerText}>{ans}</Text>
+                      ))}
+                    </View>
+                  )}
+                </View>
+              ))}
+            </ScrollView>
+            <TouchableOpacity style={styles.postButton} onPress={() => {
+              setShowSimilarQuestions(false);
+              setPriorityLevel(determinePriority());
+              setShowPriorityModal(true);
+            }}>
+              <Text style={styles.postButtonText}>Continue</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Priority Modal */}
+      <Modal visible={showPriorityModal} animationType="slide" transparent={true}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Priority detected: {priorityLevel}</Text>
+            <Text style={styles.modalDescription}>Would you like to add a priority fee for faster response?</Text>
+            <TouchableOpacity style={styles.priorityOption} onPress={() => navigation.navigate("Payment") }>
+              <Text style={styles.priorityText}>Priority</Text>
+              <Text style={styles.priorityFee}>RM 2.00</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.priorityOption} onPress={() => {
+              setShowPriorityModal(false);
+              setShowSuccessModal(true);
+            }}>
+              <Text style={styles.priorityText}>Regular</Text>
+              <Text style={styles.priorityFee}>Free</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.postButton} onPress={() => setShowPriorityModal(false)}>
+              <Text style={styles.postButtonText}>Next</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+       {/* Success Modal */}
+       <Modal visible={showSuccessModal} animationType="fade" transparent={true}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Posted Question Successfully!</Text>
+            <TouchableOpacity style={styles.postButton} onPress={() => setShowSuccessModal(false)}>
+              <Text style={styles.postButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -207,12 +330,109 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   postButton: {
-    backgroundColor: "#FF4444",
+    backgroundColor: "#A64DFF",
     paddingVertical: 12,
     paddingHorizontal: 130,
     borderRadius: 30,
   },
   postButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  }, modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+  },
+  modalContent: {
+    backgroundColor: "#222",
+    padding: 20,
+    borderRadius: 10,
+    width: "90%",
+  },
+  modalTitle: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+
+  questionContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  centerIcon: {
+    width: 45,
+    height: 45,
+    backgroundColor: "#A64DFF",
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 10,
+  },
+  centerIconText: {
+    color: "white",
+    fontSize: 30,
+    fontWeight: "bold",
+  },
+  questionItem: {
+    backgroundColor: "#1a1a1a",
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 10,
+    borderWidth: 2,
+    borderColor: "#8A2BE2",
+  },
+  questionText: {
+    color: "#fff",
+    fontSize: 14,
+  },
+  answerContainer: {
+    backgroundColor: "#4B0082",
+    padding: 12,
+    borderRadius: 10,
+    marginTop: 5,
+    borderWidth: 2,
+    borderColor: "#8A2BE2",
+    marginBottom: 10,
+  },
+  answerTitle: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  answerText: {
+    color: "white",
+    fontSize: 14,
+    marginBottom: 5,
+    borderWidth: 2,
+    borderColor: "#8A2BE2",
+    paddingVertical: 5,
+    paddingHorizontal: 15,
+    borderRadius: 10,
+  },
+  modalDescription: {
+    color: "#bbb",
+    fontSize: 14,
+    marginBottom: 10,
+  },
+  priorityOption: {
+    padding: 12,
+    borderRadius: 10,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    marginBottom: 10,
+    borderWidth: 2,
+    borderColor: "#A64DFF",
+  },
+  priorityText: {
+    color: "white",
+    fontSize: 16,
+  },
+  priorityFee: {
     color: "white",
     fontSize: 16,
     fontWeight: "bold",

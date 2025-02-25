@@ -12,6 +12,7 @@ import ConnectPage from "./ConnectPage";
 import DetailsPage from "./DetailsPage";
 import SimilarQuestionDetection from './SimilarQuestionDetection';
 import ChatList from './ChatList';
+import Payment from './Payment';
 
 const Stack = createNativeStackNavigator();
 
@@ -30,6 +31,7 @@ export default function App() {
           <Stack.Screen name="DetailsPage" component={DetailsPage} />
           <Stack.Screen name="SimilarQuestionDetection" component={SimilarQuestionDetection} />
           <Stack.Screen name="ChatList" component={ChatList} />
+          <Stack.Screen name="Payment" component={Payment} />
         </Stack.Navigator>
       </NavigationContainer>
     </>
