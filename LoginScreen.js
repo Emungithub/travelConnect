@@ -34,6 +34,21 @@ export default function LoginScreen({}) {
           style={styles.phoneInput}
         />
       </View> */}
+      {/* Phone Number Input Section */}
+      <View style={styles.phoneInputContainer}>
+        <View style={styles.flagContainer}>
+          <Image source={{ uri: "https://flagcdn.com/w40/my.png" }} style={styles.flagIcon} />
+          <Text style={styles.countryCode}>+60</Text>
+        </View>
+        <TextInput
+          style={styles.phoneInput}
+          placeholder="Enter Mobile Number"
+          placeholderTextColor="#bbb"
+          keyboardType="phone-pad"
+          value={phoneNumber}
+          onChangeText={setPhoneNumber}
+        />
+      </View>
 
       {/* Continue Button */}
       <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
@@ -49,7 +64,7 @@ export default function LoginScreen({}) {
 
       {/* Google Login */}
       <TouchableOpacity style={styles.googleButton}>
-        {/* <Image source={require("../assets/google.png")} style={styles.googleIcon} /> */}
+        <Image source={require("./assets/google.png")} style={styles.googleIcon} />
         <Text style={styles.googleText}>Continue with Google</Text>
       </TouchableOpacity>
 
@@ -152,7 +167,8 @@ const styles = StyleSheet.create({
   googleIcon: {
     width: 20,
     height: 20,
-    marginRight: 10,
+    marginRight: 15,
+    borderRadius: 10,
   },
   googleText: {
     color: "#fff",
@@ -167,5 +183,27 @@ const styles = StyleSheet.create({
   linkText: {
     color: "#A855F7",
     textDecorationLine: "underline",
+  },
+  phoneContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#1a1a1a",
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 15,
+  },
+  flagContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 10,
+  },
+  flagIcon: {
+    width: 30,
+    height: 20,
+    marginRight: 5,
+  },
+  countryCode: {
+    color: "white",
+    fontSize: 16,
   },
 });

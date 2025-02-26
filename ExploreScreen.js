@@ -15,6 +15,8 @@ import { FontAwesome5 } from "@expo/vector-icons";
 import AskLocalScreen from "./AskLocalScreen";
 import ConnectPage from "./ConnectPage";
 import ChatList from "./ChatList";
+import Profile from './Profile';
+import ExploreDetail from './ExploreDetail';
 import { useNavigation } from "@react-navigation/native";
 // Categories for filtering
 const categories = ["Recommend", "Stay", "Food", "Attractions"];
@@ -80,7 +82,18 @@ const questionsData = [
     profileImage: require("./assets/explore/solotravel.png"),
     question: "Please recommend Penang nearby cheap accommodation?",
     details: "I'm staying nearby Wangsa Maju area and would love a suggestion.",
-    answers: 0,
+    answers: 1,
+    responses: [{
+      id: "1",
+      user: "john_24",
+      level: "Lv3",
+      nationality: "Local Guide",
+      profileImage: require("./assets/explore/solotravel.png"),
+      text: "I've tried Cafe ABC near Bukit Bintang. They serve great vegetarian options and the ambiance is cozy!",
+      images: [require("./assets/explore/2.png")],
+      likes: 10,
+      suggests: "95%",
+    },]
   },
   {
     id: "2",
@@ -92,7 +105,230 @@ const questionsData = [
     question: "Any hidden cafe in Kuala Lumpur?",
     details: "Please recommend the best food in Setapak area.",
     answers: 20,
-  },
+    responses: [
+      {
+        id: "1",
+        user: "ella_03",
+        level: "Lv1",
+        nationality: "Malaysian aboard student",
+        profileImage: require("./assets/explore/solotravel.png"),
+        text: "Hi, I frequently go to DancePot, OM Factory, air sense studio for my yoga lesson. They have different kinds of yoga to choose from such as Ariel Yoga, Ariel Hoop.",
+        images: [require("./assets/explore/1.png"), require("./assets/explore/2.png")],
+        likes: 4,
+        suggests: "100%",
+      },
+      {
+        id: "2",
+        user: "john_24",
+        level: "Lv3",
+        nationality: "Local Guide",
+        profileImage: require("./assets/explore/solotravel.png"),
+        text: "I've tried Cafe ABC near Bukit Bintang. They serve great vegetarian options and the ambiance is cozy!",
+        images: [require("./assets/explore/2.png")],
+        likes: 10,
+        suggests: "95%",
+      },
+      {
+        id: "3",
+        user: "test_24",
+        level: "Lv2",
+        nationality: "Korean traveler",
+        profileImage: require("./assets/explore/solotravel.png"),
+        text: "I found a hidden cafe called Secret Garden Café. It's in a small alley near Petaling Street!",
+        images: [],
+        likes: 7,
+        suggests: "80%",
+      },
+      {
+        id: "4",
+        user: "meiki",
+        level: "Lv5",
+        nationality: "Food Blogger",
+        profileImage: require("./assets/explore/solotravel.png"),
+        text: "I love Artisan Roastery. Their cold brew is amazing, and the staff is very friendly.",
+        images: [require("./assets/explore/1.png")],
+        likes: 12,
+        suggests: "98%",
+      },
+      {
+        id: "5",
+        user: "kyle_92",
+        level: "Lv4",
+        nationality: "Traveler",
+        profileImage: require("./assets/explore/solotravel.png"),
+        text: "If you're looking for a quiet place to study, I highly recommend VCR Café in Pudu.",
+        images: [require("./assets/explore/2.png")],
+        likes: 9,
+        suggests: "92%",
+      },
+      {
+        id: "6",
+        user: "samantha_lee",
+        level: "Lv2",
+        nationality: "Coffee Lover",
+        profileImage: require("./assets/explore/solotravel.png"),
+        text: "Don't miss out on Bean Brothers! It's an industrial-style cafe with great pastries.",
+        images: [],
+        likes: 5,
+        suggests: "88%",
+      },
+      {
+        id: "7",
+        user: "hassan_k",
+        level: "Lv1",
+        nationality: "Backpacker",
+        profileImage: require("./assets/explore/solotravel.png"),
+        text: "I enjoyed the matcha lattes at Little Japan Café in Mont Kiara.",
+        images: [require("./assets/explore/1.png"), require("./assets/explore/2.png")],
+        likes: 6,
+        suggests: "85%",
+      },
+      {
+        id: "8",
+        user: "ryan_goh",
+        level: "Lv3",
+        nationality: "Kuala Lumpur Local",
+        profileImage: require("./assets/explore/solotravel.png"),
+        text: "You should try Strangers at 47! They serve delicious crepes and specialty coffee.",
+        images: [require("./assets/explore/2.png")],
+        likes: 14,
+        suggests: "97%",
+      },
+      {
+        id: "9",
+        user: "jacob_chia",
+        level: "Lv4",
+        nationality: "Photographer",
+        profileImage: require("./assets/explore/solotravel.png"),
+        text: "If you love artsy cafes, check out Pokok KL. It's filled with greenery and has a great brunch menu.",
+        images: [],
+        likes: 11,
+        suggests: "94%",
+      },
+      {
+        id: "10",
+        user: "natasha_w",
+        level: "Lv5",
+        nationality: "KL Explorer",
+        profileImage: require("./assets/explore/solotravel.png"),
+        text: "Kopenhagen Coffee in Mont Kiara is super chill, great for remote work or casual meetups.",
+        images: [require("./assets/explore/1.png")],
+        likes: 9,
+        suggests: "90%",
+      },
+      {
+        id: "11",
+        user: "kelly_jones",
+        level: "Lv3",
+        nationality: "Coffee Enthusiast",
+        profileImage: require("./assets/explore/solotravel.png"),
+        text: "Try The Red Beanbag for their amazing Australian-style breakfast and great coffee!",
+        images: [],
+        likes: 15,
+        suggests: "99%",
+      },
+      {
+        id: "12",
+        user: "bryan_oh",
+        level: "Lv2",
+        nationality: "Local Foodie",
+        profileImage: require("./assets/explore/solotravel.png"),
+        text: "If you're near Chinatown, go to Luckin Kopi. They serve local-style coffee with a twist.",
+        images: [require("./assets/explore/2.png")],
+        likes: 8,
+        suggests: "91%",
+      },
+      {
+        id: "13",
+        user: "stephanie_m",
+        level: "Lv4",
+        nationality: "Cafe Hopper",
+        profileImage: require("./assets/explore/solotravel.png"),
+        text: "Merchant’s Lane is my go-to spot. Vintage vibes with amazing food.",
+        images: [],
+        likes: 13,
+        suggests: "96%",
+      },
+      {
+        id: "14",
+        user: "tina_lau",
+        level: "Lv1",
+        nationality: "Traveler",
+        profileImage: require("./assets/explore/solotravel.png"),
+        text: "Feeka Coffee Roasters has a great selection of desserts and cozy ambiance.",
+        images: [require("./assets/explore/1.png")],
+        likes: 7,
+        suggests: "93%",
+      },
+      {
+        id: "15",
+        user: "eric_ong",
+        level: "Lv3",
+        nationality: "Barista",
+        profileImage: require("./assets/explore/solotravel.png"),
+        text: "Pulp by Papa Palheta is a specialty coffee house. Highly recommended!",
+        images: [],
+        likes: 16,
+        suggests: "99%",
+      },
+      {
+        id: "16",
+        user: "jamie_c",
+        level: "Lv2",
+        nationality: "Frequent Traveler",
+        profileImage: require("./assets/explore/solotravel.png"),
+        text: "Toby’s Estate serves one of the best flat whites in KL!",
+        images: [],
+        likes: 5,
+        suggests: "85%",
+      },
+      {
+        id: "17",
+        user: "daniel_l",
+        level: "Lv1",
+        nationality: "Solo Traveler",
+        profileImage: require("./assets/explore/solotravel.png"),
+        text: "Try Lucky Peaches Eatery for a modern twist on Asian fusion and coffee.",
+        images: [require("./assets/explore/2.png")],
+        likes: 8,
+        suggests: "92%",
+      },
+      {
+        id: "18",
+        user: "michelle_lee",
+        level: "Lv4",
+        nationality: "KL Resident",
+        profileImage: require("./assets/explore/solotravel.png"),
+        text: "Birch KL is fantastic for brunch lovers! Stylish and cozy.",
+        images: [require("./assets/explore/1.png")],
+        likes: 12,
+        suggests: "97%",
+      },
+      {
+        id: "19",
+        user: "jason_h",
+        level: "Lv5",
+        nationality: "Barista Trainer",
+        profileImage: require("./assets/explore/solotravel.png"),
+        text: "Don’t miss out on One Half x ilaika, great for handcrafted drinks and chill vibes.",
+        images: [],
+        likes: 14,
+        suggests: "95%",
+      },
+      {
+        id: "20",
+        user: "rebecca_tan",
+        level: "Lv3",
+        nationality: "Lifestyle Blogger",
+        profileImage: require("./assets/explore/solotravel.png"),
+        text: "I highly recommend Breakfast Thieves, excellent for food and coffee lovers alike!",
+        images: [require("./assets/explore/2.png")],
+        likes: 11,
+        suggests: "96%",
+      },
+    ],
+  }
+  
 ];
 
 const ExploreComponent = () => {
@@ -142,7 +378,7 @@ const ExploreComponent = () => {
         data={exploreData}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View style={styles.card}>
+          <TouchableOpacity style={styles.card} onPress={() => navigation.navigate("ExploreDetail", { item })}>
             <Image source={item.image} style={styles.image} />
             <Text style={styles.title}>{item.title}</Text>
             <View style={styles.userContainer}>
@@ -153,7 +389,8 @@ const ExploreComponent = () => {
                 <Text style={styles.rating}>{item.rating}</Text>
               </View>
             </View>
-          </View>
+          </TouchableOpacity>
+
         )}
         columnWrapperStyle={styles.columnWrapper}
         contentContainerStyle={{ paddingBottom: 5 }} // Add spacing to prevent UI cutting off
@@ -230,23 +467,47 @@ const QuestionsComponent = () => {
           </View>
           <Text style={styles.questionDetails}>{item.details}</Text>
           <View style={styles.answerContainer}>
-            <TouchableOpacity onPress={() => navigation.navigate("ContentGPT")} style={styles.translateButton}>
-              <Image source={require("./assets/translate.png")}  />
-            </TouchableOpacity>
             <TouchableOpacity
-              style={[
-                styles.answerButton,
-                selectedAnswer === item.id && styles.answerButtonActive,
-              ]}
-              onPress={() => {
-                setSelectedAnswer(item.id);
-                navigation.navigate("AskLocal");
-              }}
+              style={[styles.answerButton, selectedAnswer === item.id && styles.answerButtonActive]}
+              onPress={() => setSelectedAnswer(selectedAnswer === item.id ? null : item.id)}
             >
               <FontAwesome5 name="comment" size={14} color="#bbb" />
               <Text style={styles.answers}>Answer {item.answers}</Text>
             </TouchableOpacity>
           </View>
+          {/* Display answers when the button is clicked */}
+          {selectedAnswer === item.id && item.responses.length > 0 && (
+            <View style={styles.responseContainer}>
+              <Text style={styles.commentsHeader}>Comments ({item.responses.length})</Text>
+              {item.responses.map((response) => (
+                <View key={response.id} style={styles.responseCard}>
+                  <View style={styles.responseHeader}>
+                    <Image source={response.profileImage} style={styles.profileImageResponse} />
+                    <View style={styles.textContainer}>
+                      <Text style={styles.responseUser}>{response.user}   <Text style={styles.levelTag}>{response.level}</Text></Text>
+                      <Text style={styles.responseTag}>{response.nationality}</Text>
+                    </View>
+                    
+                    <Text style={styles.timestamp}>{response.timestamp}</Text>
+                  </View>
+                  <Text style={styles.responseText}>{response.text}</Text>
+                  <ScrollView horizontal>
+                    {response.images.map((img, idx) => (
+                      <Image key={idx} source={img} style={styles.responseImage} />
+                    ))}
+                  </ScrollView>
+                  <View style={styles.responseFooter}>                    
+                    <TouchableOpacity style={styles.translateButton}>
+                      <Image source={require("./assets/translate.png")} style={styles.translateButton} />  
+                    </TouchableOpacity>
+                    <FontAwesome5 name="thumbs-up" size={14} color="white" />
+                    <Text style={styles.likesText}>{response.likes}</Text>
+                    <Text style={styles.suggestText}>{response.suggests}</Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
       ))}
     </ScrollView>
@@ -383,7 +644,7 @@ export default function ExploreScreen() {
       />
       <BottomTab.Screen
         name="Me"
-        component={TopTabNavigator}
+        component={Profile}
         options={{
           tabBarIcon: ({ color }) => <FontAwesome5 name="user" size={20} color={color} />,
         }}
@@ -585,8 +846,8 @@ const styles = StyleSheet.create({
   translateButton:{
     paddingTop: 5,
     paddingRight: 10,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: "flex-end",
+    alignItems: "end",
   },
   tabBar: {
     backgroundColor: "#000",
@@ -605,4 +866,86 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontWeight: "bold",
   },
+
+  responseContainer: {
+    backgroundColor: "#1a1a1a",
+    padding: 10,
+    borderRadius: 10,
+    marginTop: 10,
+  },
+  commentsHeader: {
+    color: "white",
+    fontSize: 14,
+    fontWeight: "bold",
+    marginBottom: 5,
+  },
+  responseCard: {
+    backgroundColor: "#222",
+    padding: 10,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  responseHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 5,
+  },
+  profileImageResponse: {
+    width: 35,
+    height: 35,
+    borderRadius: 20,
+    marginRight: 10,
+  },
+  responseUser: {
+    color: "white",
+    fontSize: 14,
+    fontWeight: "bold",
+  },
+  levelTag: {
+    color: "#8A2BE2",
+    fontSize: 12,
+    fontWeight: "bold",
+    marginLeft: 5,
+  },
+  responseTag: {
+    color: "#bbb",
+    fontSize: 12,
+  },
+  timestamp: {
+    color: "#bbb",
+    fontSize: 12,
+  },
+  responseText: {
+    color: "white",
+    fontSize: 14,
+    marginTop: 5,
+  },
+  responseImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 10,
+    marginTop: 5,
+    marginRight: 5,
+  },
+  responseFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",  // Push all elements to the right
+    marginTop: 5,
+    gap: 5, // Add space between elements
+    padding: 5,
+  },
+  
+  likesText: {
+    color: "white",
+    fontSize: 12,
+    marginLeft: 5,
+  },
+  suggestText: {
+    color: "#A64DFF",
+    fontSize: 12,
+    marginLeft: 10,
+  },
+
 });
