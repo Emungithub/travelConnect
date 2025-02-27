@@ -24,15 +24,17 @@ const categories = ["Recommend", "Stay", "Food", "Attractions"];
 const exploreData = [
   {
     id: "1",
-    title: "First experience in Sense Studio Wangsa Maju",
-    image: require("./assets/explore/1.png"),
-    user: "emun_03",
+    title: "Experience Taman ABC Night Market",
+    description: "Looking for a place to **stretch, relax, and rejuvenate**? 🌸✨ Experience the **tranquility and expert guidance** at **Sense Studio Wangsa Maju**, where wellness meets serenity! 🏡💆‍♂️\n\n🔥 Whether you're a **beginner or an experienced yogi**, there's something for everyone:\n\n✅ **Hatha Yoga** – Perfect for **balance & flexibility** 🧘\n✅ **Vinyasa Flow** – A **dynamic & energizing** workout 🔥\n✅ **Yin Yoga** – Deep **stretching & relaxation** 🌙\n✅ **Aerial Yoga** – Fly high & build **core strength** 🕊️\n\n🌿 **Why Sense Studio Wangsa Maju?**\n🎀 **Cozy ambiance** & skilled trainers! 🎀\n🌸 **Great for beginners & advanced yogis!** 🌸\n\n💬 **Tag your yoga buddies & start your wellness journey today!** 🏞️💖\n\n#SenseStudio #YogaWangsaMaju #MindBodySoul #RelaxAndFlow #BestYogaKL",
+    image: require("./assets/explore/2.png"),
+    user: "test_24",
     profileImage: require("./assets/explore/solotravel.png"),
-    rating: "100%",
-  },
+    rating: "90%",
+  },  
   {
     id: "2",
     title: "Experience Taman ABC Night Market",
+    description: "Looking for a place to **stretch, relax, and rejuvenate**? 🌸✨ Experience the **tranquility and expert guidance** at **Sense Studio Wangsa Maju**, where wellness meets serenity! 🏡💆‍♂️\n\n🔥 Whether you're a **beginner or an experienced yogi**, there's something for everyone:\n\n✅ **Hatha Yoga** – Perfect for **balance & flexibility** 🧘\n✅ **Vinyasa Flow** – A **dynamic & energizing** workout 🔥\n✅ **Yin Yoga** – Deep **stretching & relaxation** 🌙\n✅ **Aerial Yoga** – Fly high & build **core strength** 🕊️\n\n🌿 **Why Sense Studio Wangsa Maju?**\n🎀 **Cozy ambiance** & skilled trainers! 🎀\n🌸 **Great for beginners & advanced yogis!** 🌸\n\n💬 **Tag your yoga buddies & start your wellness journey today!** 🏞️💖\n\n#SenseStudio #YogaWangsaMaju #MindBodySoul #RelaxAndFlow #BestYogaKL",
     image: require("./assets/explore/2.png"),
     user: "test_24",
     profileImage: require("./assets/explore/solotravel.png"),
@@ -41,6 +43,7 @@ const exploreData = [
   {
     id: "3",
     title: "First experience in Sense Studio Wangsa Maju",
+    description: "Looking for a place to **stretch, relax, and rejuvenate**? 🌸✨ Experience the **tranquility and expert guidance** at **Sense Studio Wangsa Maju**, where wellness meets serenity! 🏡💆‍♂️\n\n🔥 Whether you're a **beginner or an experienced yogi**, there's something for everyone:\n\n✅ **Hatha Yoga** – Perfect for **balance & flexibility** 🧘\n✅ **Vinyasa Flow** – A **dynamic & energizing** workout 🔥\n✅ **Yin Yoga** – Deep **stretching & relaxation** 🌙\n✅ **Aerial Yoga** – Fly high & build **core strength** 🕊️\n\n🌿 **Why Sense Studio Wangsa Maju?**\n🎀 **Cozy ambiance** & skilled trainers! 🎀\n🌸 **Great for beginners & advanced yogis!** 🌸\n\n💬 **Tag your yoga buddies & start your wellness journey today!** 🏞️💖\n\n#SenseStudio #YogaWangsaMaju #MindBodySoul #RelaxAndFlow #BestYogaKL",
     image: require("./assets/explore/1.png"),
     user: "ella_03",
     profileImage: require("./assets/explore/solotravel.png"),
@@ -49,6 +52,7 @@ const exploreData = [
   {
     id: "4",
     title: "Experience Taman ",
+    description: "Looking for a place to **stretch, relax, and rejuvenate**? 🌸✨ Experience the **tranquility and expert guidance** at **Sense Studio Wangsa Maju**, where wellness meets serenity! 🏡💆‍♂️\n\n🔥 Whether you're a **beginner or an experienced yogi**, there's something for everyone:\n\n✅ **Hatha Yoga** – Perfect for **balance & flexibility** 🧘\n✅ **Vinyasa Flow** – A **dynamic & energizing** workout 🔥\n✅ **Yin Yoga** – Deep **stretching & relaxation** 🌙\n✅ **Aerial Yoga** – Fly high & build **core strength** 🕊️\n\n🌿 **Why Sense Studio Wangsa Maju?**\n🎀 **Cozy ambiance** & skilled trainers! 🎀\n🌸 **Great for beginners & advanced yogis!** 🌸\n\n💬 **Tag your yoga buddies & start your wellness journey today!** 🏞️💖\n\n#SenseStudio #YogaWangsaMaju #MindBodySoul #RelaxAndFlow #BestYogaKL",
     image: require("./assets/explore/2.png"),
     user: "john_24",
     profileImage: require("./assets/explore/solotravel.png"),
@@ -57,6 +61,7 @@ const exploreData = [
   {
     id: "5",
     title: "Sense Studio Wangsa Maju",
+    description: "Looking for a place to **stretch, relax, and rejuvenate**? 🌸✨ Experience the **tranquility and expert guidance** at **Sense Studio Wangsa Maju**, where wellness meets serenity! 🏡💆‍♂️\n\n🔥 Whether you're a **beginner or an experienced yogi**, there's something for everyone:\n\n✅ **Hatha Yoga** – Perfect for **balance & flexibility** 🧘\n✅ **Vinyasa Flow** – A **dynamic & energizing** workout 🔥\n✅ **Yin Yoga** – Deep **stretching & relaxation** 🌙\n✅ **Aerial Yoga** – Fly high & build **core strength** 🕊️\n\n🌿 **Why Sense Studio Wangsa Maju?**\n🎀 **Cozy ambiance** & skilled trainers! 🎀\n🌸 **Great for beginners & advanced yogis!** 🌸\n\n💬 **Tag your yoga buddies & start your wellness journey today!** 🏞️💖\n\n#SenseStudio #YogaWangsaMaju #MindBodySoul #RelaxAndFlow #BestYogaKL",
     image: require("./assets/explore/1.png"),
     user: "ella_03",
     profileImage: require("./assets/explore/solotravel.png"),
@@ -65,6 +70,7 @@ const exploreData = [
   {
     id: "6",
     title: "Experience Taman ABC Night Market",
+    description: "Looking for a place to **stretch, relax, and rejuvenate**? 🌸✨ Experience the **tranquility and expert guidance** at **Sense Studio Wangsa Maju**, where wellness meets serenity! 🏡💆‍♂️\n\n🔥 Whether you're a **beginner or an experienced yogi**, there's something for everyone:\n\n✅ **Hatha Yoga** – Perfect for **balance & flexibility** 🧘\n✅ **Vinyasa Flow** – A **dynamic & energizing** workout 🔥\n✅ **Yin Yoga** – Deep **stretching & relaxation** 🌙\n✅ **Aerial Yoga** – Fly high & build **core strength** 🕊️\n\n🌿 **Why Sense Studio Wangsa Maju?**\n🎀 **Cozy ambiance** & skilled trainers! 🎀\n🌸 **Great for beginners & advanced yogis!** 🌸\n\n💬 **Tag your yoga buddies & start your wellness journey today!** 🏞️💖\n\n#SenseStudio #YogaWangsaMaju #MindBodySoul #RelaxAndFlow #BestYogaKL",
     image: require("./assets/explore/2.png"),
     user: "john_24",
     profileImage: require("./assets/explore/solotravel.png"),

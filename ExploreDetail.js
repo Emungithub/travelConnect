@@ -14,13 +14,6 @@ const ExploreDetail = ({ route, navigation }) => {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Explore Details</Text>
       </View>
-
-      {/* Image */}
-      <Image source={item.image} style={styles.image} />
-
-      {/* Title */}
-      <Text style={styles.title}>{item.title}</Text>
-
       {/* User Info */}
       <View style={styles.userContainer}>
         <Image source={item.profileImage} style={styles.profileImage} />
@@ -31,8 +24,16 @@ const ExploreDetail = ({ route, navigation }) => {
         </View>
       </View>
 
+
+      {/* Image */}
+      <Image source={item.image} style={styles.image} />
+
+      {/* Title */}
+      <Text style={styles.title}>{item.title}</Text>
+
+      
       {/* Description */}
-      <Text style={styles.description}>This is a placeholder description for the explore detail page. You can add more information about the place, experiences, and recommendations here.</Text>
+      <Text style={styles.description}>{item.description}</Text>
 
       {/* Button to go back */}
       <TouchableOpacity style={styles.backButtonFull} onPress={() => navigation.goBack()}>
@@ -52,6 +53,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 10,
+    paddingTop: 40,
+    display: "center",
+    justifyContent: "center",
   },
   backButton: {
     marginRight: 15,
@@ -60,10 +64,12 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
+    textAlign: "center",
+    flex: 1,
   },
   image: {
-    width: "100%",
-    height: 250,
+    width: "full",
+    height: "488",
     borderRadius: 10,
     marginBottom: 15,
   },
