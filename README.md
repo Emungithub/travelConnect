@@ -26,6 +26,7 @@ Make sure you have the following installed:
 - **Android Studio** (if using andriod studio emulator)
 - **MongoDB** (if using a self-hosted database)
 - **Firebase CLI** (if using Firebase)
+- **Login** https://www.youtube.com/watch?v=u9I54N80oBo
 
 ### 2️⃣ Installation
 Clone the repository:
@@ -44,6 +45,10 @@ npm install @react-navigation/bottom-tabs
 npm install @react-navigation/material-top-tabs
 npx expo install react-native-pager-view
 npm install react-native-dotenv
+npx expo install expo-auth-session expo-crypto expo-web-browser react-native-web react-dom @expo/webpack-config @react-native-async-storage/async-storage
+npm install @clerk/clerk-expo
+expo install expo-auth-session expo-web-browser
+
 ```
 
 ### 3️⃣ Running the Project

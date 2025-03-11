@@ -15,12 +15,15 @@ import ChatList from './ChatList';
 import Payment from './Payment';
 import Profile from './Profile';
 import ExploreDetail from './ExploreDetail';
+
+
+
 const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
     <>
-      <StatusBar style="dark" />
+      <StatusBar style="dark" />      
       <NavigationContainer>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Login" component={LoginScreen} />

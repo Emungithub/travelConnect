@@ -8,15 +8,18 @@ import {
   StyleSheet,
   Switch,
   Modal,
-  ScrollView
+  ScrollView, 
+  FlatList
 } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 import { useNavigation, useRoute } from "@react-navigation/native";
 
 
 const AskLocalScreen = ({ navigation }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [images, setImages] = useState([]);
   const [showSimilarQuestions, setShowSimilarQuestions] = useState(true);
   const [showPriorityModal, setShowPriorityModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -64,6 +67,38 @@ const AskLocalScreen = ({ navigation }) => {
       return "Low";
     }
   };
+
+  // Function to pick an image
+  const pickImage = async () => {
+    if (images.length >= 9) {
+      alert("You can only upload up to 9 images.");
+      return;
+    }
+
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      alert("Permission to access the gallery is required!");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setImages([...images, result.assets[0].uri]); // Add selected image
+    }
+  };
+
+  // Function to remove an image
+  const removeImage = (index) => {
+    const updatedImages = images.filter((_, i) => i !== index);
+    setImages(updatedImages);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -74,15 +109,30 @@ const AskLocalScreen = ({ navigation }) => {
       </View>
 
       <View style={{ flex: 1 }}>
-        <View style={styles.imageUploadContainer}>
-          <Image
-            source={require("./assets/explore/1.png")}
-            style={styles.uploadedImage}
-          />
-          <TouchableOpacity style={styles.uploadButton}>
-            <FontAwesome5 name="plus" size={20} color="white" />
-          </TouchableOpacity>
-        </View>
+      <FlatList
+          data={[...images, "add_button"]} // Adding 'add_button' as the last item
+          keyExtractor={(item, index) => index.toString()}
+          horizontal
+          renderItem={({ item, index }) => (
+            item === "add_button" ? (
+              images.length < 9 && (
+                <TouchableOpacity style={styles.uploadButton} onPress={pickImage}>
+                  <FontAwesome5 name="plus" size={20} color="white" />
+                </TouchableOpacity>
+              )
+            ) : (
+              <View style={styles.imageWrapper}>
+                <Image source={{ uri: item }} style={styles.uploadedImage} />
+                <TouchableOpacity
+                  style={styles.removeButton}
+                  onPress={() => removeImage(index)}
+                >
+                  <FontAwesome5 name="times" size={14} color="white" />
+                </TouchableOpacity>
+              </View>
+            )
+          )}
+        />
 
         <TextInput
           style={styles.titleInput}
@@ -232,10 +282,34 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: "center",
   },
+  imageWrapper: {
+    position: "relative",
+    marginRight: 10,
+  },
   uploadedImage: {
     width: 80,
     height: 80,
     borderRadius: 10,
+  },
+  removeButton: {
+    position: "absolute",
+    top: -5,
+    right: -5,
+    backgroundColor: "red",
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  uploadButton: {
+    width: 80,
+    height: 80,
+    backgroundColor: "#1a1a1a",
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 10,
   },
   imageUploadContainer: {
     flexDirection: "row",

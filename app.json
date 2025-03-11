@@ -19,10 +19,24 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.anonymous.FYP"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.194432150719-31rntjgaa4ff1s558sbqlbpq6jr88l2p"
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "d037775b-d4e5-4028-94f5-8b3c79a0995b"
+      }
     }
   }
 }

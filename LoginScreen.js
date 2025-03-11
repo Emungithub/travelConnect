@@ -1,6 +1,20 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+// import {
+//   GoogleSignin,
+//   GoogleSigninButton,
+//   statusCodes,
+// } from '@react-native-google-signin/google-signin';
+
+// GoogleSignin.configure({
+//   webClientId: 'WEB_CLIENT_ID', // client ID of type WEB for your server. Required to get the `idToken` on the user object, and for offline access.
+//   scopes: ['https://www.googleapis.com/auth/drive.readonly'], // what API you want to access on behalf of the user, default is email and profile
+//   offlineAccess: true, // if you want to access Google API on behalf of the user FROM YOUR SERVER
+//   hostedDomain: '', // specifies a hosted domain restriction
+//   forceCodeForRefreshToken: false, // [Android] related to `serverAuthCode`, read the docs link below *.
+//   iosClientId: 'IOS_CLIENT_ID', // [iOS] if you want to specify the client ID of type iOS (otherwise, it is taken from GoogleService-Info.plist)
+// });
 
 export default function LoginScreen({}) {
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -12,6 +26,10 @@ export default function LoginScreen({}) {
 
   return (
     <View style={styles.container}>
+      {/* <GoogleSigninButton
+              size={GoogleSigninButton.Size.Wide}
+              color={GoogleSigninButton.Color.Dark}
+            /> */}
       {/* Logo */}
       <Image source={require("./assets/travelConnectLogo.png")} style={styles.logo} />
 
