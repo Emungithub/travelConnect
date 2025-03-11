@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { Alert } from 'react-native';
+
 import { WEB_CLIENT_ID, IOS_CLIENT_ID } from '@env';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
@@ -10,6 +12,8 @@ export default function LoginScreen({ }) {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLogin, setIsLogin] = useState(true); // State to toggle between login and register
+
   const handleContinue = () => {
     navigation.navigate('Recommendation');
   }
@@ -17,32 +21,30 @@ export default function LoginScreen({ }) {
     console.log("Attempting to Register...");
 
     try {
-        const response = await fetch('http://10.0.2.2:3000/register', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
-        });
+      const response = await fetch('http://10.0.2.2:3000/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
 
-        console.log("Response Status:", response.status);
+      console.log("Response Status:", response.status);
 
-        const data = await response.json();
-        console.log("Server Response Data:", data);
+      const data = await response.json();
+      console.log("Server Response Data:", data);
 
-        if (response.ok) {
-            Alert.alert('Success', 'Registration successful!');
-        } else {
-            Alert.alert('Error', data.error || 'Unknown error occurred.');
-        }
+      if (response.ok) {
+        Alert.alert('Success', 'Registration successful!');
+      } else {
+        Alert.alert('Error', data.error || 'Unknown error occurred.');
+      }
     } catch (error) {
-        console.error('Registration Error:', error);
-        Alert.alert('Error', 'Failed to connect to server.');
+      console.error('Registration Error:', error);
+      Alert.alert('Error', 'Failed to connect to server.');
     }
-};
-
-
+  };
   const handleLogin = async () => {
     try {
-      const response = await fetch('http://localhost:3000/login', {
+      const response = await fetch('http://10.0.2.2:3000/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -51,7 +53,14 @@ export default function LoginScreen({ }) {
       const data = await response.json();
       if (response.ok) {
         Alert.alert('Success', 'Login successful!');
-        navigation.navigate('Recommendation');
+
+        // Check if the user has already chosen a recommendation
+        const hasChosenRecommendation = await AsyncStorage.getItem('hasChosenRecommendation');
+        if (hasChosenRecommendation) {
+          navigation.navigate('Explore');
+        } else {
+          navigation.navigate('Recommendation');
+        }
       } else {
         Alert.alert('Error', data.error);
       }
@@ -101,13 +110,27 @@ export default function LoginScreen({ }) {
       />
 
 
-      <TouchableOpacity onPress={handleRegister} style={styles.button}>
-        <Text style={styles.buttonText}>Register</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity onPress={handleLogin} style={styles.button}>
-        <Text style={styles.buttonText}>Login</Text>
-      </TouchableOpacity>
+      {isLogin ? (
+        <>
+          <TouchableOpacity onPress={handleLogin} style={styles.button}>
+            <Text style={styles.buttonText}>Login</Text>
+          </TouchableOpacity>
+          <Text style={styles.switchText}>
+            Don't have an account?{" "}
+            <Text style={styles.linkText} onPress={() => setIsLogin(false)}>Sign up now</Text>
+          </Text>
+        </>
+      ) : (
+        <>
+          <TouchableOpacity onPress={handleRegister} style={styles.button}>
+            <Text style={styles.buttonText}>Register</Text>
+          </TouchableOpacity>
+          <Text style={styles.switchText}>
+            Already have an account?{" "}
+            <Text style={styles.linkText} onPress={() => setIsLogin(true)}>Go to login</Text>
+          </Text>
+        </>
+      )}
 
       {/* Continue Button */}
       <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
