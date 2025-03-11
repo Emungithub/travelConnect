@@ -1,15 +1,100 @@
 require('dotenv').config();
 const express = require('express');
-const sequelize = require('./db');  // Import database connection
+const mysql = require('mysql2');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Middleware
 app.use(express.json());
 
-// Sample route
-app.get('/api/users', async (req, res) => {
-    const [users] = await sequelize.query('SELECT * FROM users');
-    res.json(users);
+// Database Connection
+const db = mysql.createConnection({
+    host: process.env.DB_HOST || 'localhost',
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'travelConnectDB',
+    port: process.env.DB_PORT || 3306
 });
 
-// Start server
-app.listen(3000, () => console.log('Server running on port 3000'));
+// Attempt connection
+db.connect((err) => {
+    if (err) {
+        console.error('Database connection failed:', err.message);
+        return;
+    }
+    console.log('Connected to MySQL database.');
+});
+
+// ==============================
+// Register Endpoint
+// ==============================
+app.post('/register', (req, res) => {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+        return res.status(400).json({ error: 'Email and password are required.' });
+    }
+
+    const sql = 'INSERT INTO users (email, password) VALUES (?, ?)';
+    db.query(sql, [email, password], (err, result) => {
+        if (err) {
+            console.error("Database Insert Error:", err);
+            return res.status(500).json({ error: 'Failed to register user.' });
+        }
+        res.status(201).json({ message: 'User registered successfully.' });
+    });
+});
+
+
+// ==============================
+// Login Endpoint
+// ==============================
+app.post('/login', async (req, res) => {
+    const { email, password } = req.body;
+
+    const sql = `SELECT * FROM users WHERE email = ?`;
+    db.query(sql, [email], async (err, results) => {
+        if (err) return res.status(500).json({ error: 'Login failed' });
+
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const user = results[0];
+        const isMatch = await bcrypt.compare(password, user.password);
+
+        if (!isMatch) {
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
+
+        // Generate JWT Token for session
+        const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        res.json({ message: 'Login successful', token });
+    });
+});
+
+// ==============================
+// Protected Route (For Testing)
+// ==============================
+app.get('/profile', authenticateToken, (req, res) => {
+    res.json({ message: 'Welcome to your profile!' });
+});
+
+// ==============================
+// Token Authentication Middleware
+// ==============================
+function authenticateToken(req, res, next) {
+    const token = req.header('Authorization')?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'Access denied' });
+
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+        if (err) return res.status(403).json({ error: 'Invalid token' });
+        req.user = user;
+        next();
+    });
+}
+
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

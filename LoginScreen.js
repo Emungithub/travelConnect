@@ -2,32 +2,68 @@ import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { WEB_CLIENT_ID, IOS_CLIENT_ID } from '@env';
-import {
-  GoogleSignin,
-  GoogleSigninButton,
-  statusCodes,
-} from '@react-native-google-signin/google-signin';
+import * as WebBrowser from 'expo-web-browser';
+import * as Google from 'expo-auth-session/providers/google';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-GoogleSignin.configure({
-  webClientId: WEB_CLIENT_ID, // client ID of type WEB for your server. Required to get the `idToken` on the user object, and for offline access.
-  scopes: ['https://www.googleapis.com/auth/drive.readonly'], // what API you want to access on behalf of the user, default is email and profile
-  offlineAccess: true, // if you want to access Google API on behalf of the user FROM YOUR SERVER
-  hostedDomain: '', // specifies a hosted domain restriction
-  forceCodeForRefreshToken: false, // [Android] related to `serverAuthCode`, read the docs link below *.
-  iosClientId: IOS_CLIENT_ID, // [iOS] if you want to specify the client ID of type iOS (otherwise, it is taken from GoogleService-Info.plist)
-});
-
-export default function LoginScreen({}) {
-  const [phoneNumber, setPhoneNumber] = useState("");
+export default function LoginScreen({ }) {
   const navigation = useNavigation();
-
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const handleContinue = () => {
     navigation.navigate('Recommendation');
   }
+  const handleRegister = async () => {
+    console.log("Attempting to Register...");
+
+    try {
+        const response = await fetch('http://10.0.2.2:3000/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+
+        console.log("Response Status:", response.status);
+
+        const data = await response.json();
+        console.log("Server Response Data:", data);
+
+        if (response.ok) {
+            Alert.alert('Success', 'Registration successful!');
+        } else {
+            Alert.alert('Error', data.error || 'Unknown error occurred.');
+        }
+    } catch (error) {
+        console.error('Registration Error:', error);
+        Alert.alert('Error', 'Failed to connect to server.');
+    }
+};
+
+
+  const handleLogin = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        Alert.alert('Success', 'Login successful!');
+        navigation.navigate('Recommendation');
+      } else {
+        Alert.alert('Error', data.error);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Login failed');
+    }
+  };
+
 
   return (
     <View style={styles.container}>
-      
+
       {/* Logo */}
       <Image source={require("./assets/travelConnectLogo.png")} style={styles.logo} />
 
@@ -40,53 +76,44 @@ export default function LoginScreen({}) {
       {/* Description */}
       <Text style={styles.description}>Connect with locals, explore like never before.</Text>
       <Text>Sign in with Google</Text>
-      <GoogleSigninButton
+      {/* <GoogleSigninButton
               size={GoogleSigninButton.Size.Wide}
               color={GoogleSigninButton.Color.Dark}
-            />
-      {/* Phone Input */}
+            /> */}
+
       <Text style={styles.loginText}>Log in or sign up</Text>
-      {/* <View style={styles.phoneInputContainer}>
-        <PhoneInput
-          initialCountry={"my"} // Malaysia default
-          textProps={{ placeholder: "Enter Mobile Number" }}
-          onChangePhoneNumber={(num) => setPhoneNumber(num)}
-          style={styles.phoneInput}
-        />
-      </View> */}
-      {/* Phone Number Input Section */}
-      <View style={styles.phoneInputContainer}>
-        <View style={styles.flagContainer}>
-          <Image source={{ uri: "https://flagcdn.com/w40/my.png" }} style={styles.flagIcon} />
-          <Text style={styles.countryCode}>+60</Text>
-        </View>
-        <TextInput
-          style={styles.phoneInput}
-          placeholder="Enter Mobile Number"
-          placeholderTextColor="#bbb"
-          keyboardType="phone-pad"
-          value={phoneNumber}
-          onChangeText={setPhoneNumber}
-        />
-      </View>
+
+      <TextInput
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}
+        style={styles.input}
+        placeholderTextColor="#A3A3A3"  // Light gray for better visibility
+      />
+
+      <TextInput
+        placeholder="Password"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+        style={styles.input}
+        placeholderTextColor="#A3A3A3"  // Light gray for better visibility
+      />
+
+
+      <TouchableOpacity onPress={handleRegister} style={styles.button}>
+        <Text style={styles.buttonText}>Register</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={handleLogin} style={styles.button}>
+        <Text style={styles.buttonText}>Login</Text>
+      </TouchableOpacity>
 
       {/* Continue Button */}
       <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
         <Text style={styles.continueText}>Continue</Text>
       </TouchableOpacity>
 
-      {/* OR Divider */}
-      <View style={styles.orContainer}>
-        <View style={styles.line} />
-        <Text style={styles.orText}>Or</Text>
-        <View style={styles.line} />
-      </View>
-
-      {/* Google Login */}
-      <TouchableOpacity style={styles.googleButton}>
-        <Image source={require("./assets/google.png")} style={styles.googleIcon} />
-        <Text style={styles.googleText}>Continue with Google</Text>
-      </TouchableOpacity>
 
       {/* Terms */}
       <Text style={styles.termsText}>
@@ -107,7 +134,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   logo: {
-    marginBottom: 10, 
+    marginBottom: 10,
   },
   title: {
     fontSize: 32,
@@ -134,7 +161,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     marginBottom: 10,
   },
-  phoneInputContainer: {
+  inputContainer: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#222",
@@ -143,11 +170,23 @@ const styles = StyleSheet.create({
     width: "100%",
     marginBottom: 15,
   },
-  phoneInput: {
-    flex: 1,
-    color: "#fff",
+  input: {
+    width: '100%',
+    height: 50,
+    backgroundColor: '#1E1E1E',  // Darker background for better contrast
+    color: '#FFF',               // White text for readability
+    borderColor: '#A855F7',      // Purple border for better visibility
+    borderWidth: 1,
+    borderRadius: 12,            // Rounded corners for a modern look
+    paddingHorizontal: 15,       // Comfortable spacing inside input
+    marginBottom: 15,            // Space between inputs
+    fontSize: 16,                // Larger text for better readability
+    shadowColor: '#A855F7',      // Soft glowing shadow for an elegant touch
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
   },
-  continueButton: {
+  button: {
     backgroundColor: "#A855F7",
     paddingVertical: 15,
     borderRadius: 10,
@@ -155,7 +194,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 15,
   },
-  continueText: {
+  buttonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",

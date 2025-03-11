@@ -21,6 +21,7 @@
     "@react-navigation/native-stack": "^7.2.0",
     "@react-navigation/stack": "^7.1.1",
     "axios": "^1.8.2",
+    "bcrypt": "^5.1.1",
     "dotenv": "^16.4.7",
     "expo": "~52.0.28",
     "expo-auth-session": "~6.0.3",
@@ -29,6 +30,7 @@
     "expo-status-bar": "~2.0.1",
     "expo-web-browser": "~14.0.2",
     "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.13.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
@@ -49,5 +51,9 @@
     "@babel/core": "^7.20.0",
     "metro-react-native-babel-preset": "^0.77.0"
   },
-  "private": true
+  "private": true,
+  "description": "**TravelConnect** is a travel platform designed to bridge the gap between travelers and locals. The platform provides real-time, location-specific insights, fostering community-driven engagement and personalized travel experiences.",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }
