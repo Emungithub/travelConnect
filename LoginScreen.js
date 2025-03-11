@@ -27,10 +27,7 @@ export default function LoginScreen({}) {
 
   return (
     <View style={styles.container}>
-      <GoogleSigninButton
-              size={GoogleSigninButton.Size.Wide}
-              color={GoogleSigninButton.Color.Dark}
-            />
+      
       {/* Logo */}
       <Image source={require("./assets/travelConnectLogo.png")} style={styles.logo} />
 
@@ -42,7 +39,11 @@ export default function LoginScreen({}) {
 
       {/* Description */}
       <Text style={styles.description}>Connect with locals, explore like never before.</Text>
-
+      <Text>Sign in with Google</Text>
+      <GoogleSigninButton
+              size={GoogleSigninButton.Size.Wide}
+              color={GoogleSigninButton.Color.Dark}
+            />
       {/* Phone Input */}
       <Text style={styles.loginText}>Log in or sign up</Text>
       {/* <View style={styles.phoneInputContainer}>
