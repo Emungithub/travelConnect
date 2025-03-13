@@ -6,23 +6,32 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Switch,
   Modal,
-  ScrollView, 
+  ScrollView,
   FlatList
 } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import MapView, { Marker } from "react-native-maps";
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import 'react-native-get-random-values';
+import { v4 as uuidv4 } from 'uuid';
+import { KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { useEffect } from "react";
+import {GOOGLE_PLACES_API_KEY} from "@env";
+import { Alert } from 'react-native';
 
 
 const AskLocalScreen = ({ navigation }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [images, setImages] = useState([]);
-  const [showSimilarQuestions, setShowSimilarQuestions] = useState(true);
+  const [showSimilarQuestions, setShowSimilarQuestions] = useState(false);
   const [showPriorityModal, setShowPriorityModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showMapModal, setShowMapModal] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState(null);
   const [selectedQuestion, setSelectedQuestion] = useState(null);
   const [priorityLevel, setPriorityLevel] = useState("Low");
   const route = useRoute();
@@ -99,6 +108,57 @@ const AskLocalScreen = ({ navigation }) => {
     setImages(updatedImages);
   };
 
+  // Function to handle location selection
+  const handleLocationSelect = (details) => {
+    const { name, vicinity, geometry } = details;
+    setSelectedLocation({
+      name,
+      address: vicinity,
+      latitude: geometry.location.lat,
+      longitude: geometry.location.lng,
+    });
+    setShowMapModal(false); // Close the modal after selection
+  };
+
+  useEffect(() => {
+    fetch(`https://maps.googleapis.com/maps/api/place/textsearch/json?query=starbucks&key=${process.env.GOOGLE_PLACES_API_KEY}`)
+      .then(response => response.json())
+      .then(data => console.log('API Response:', data))
+      .catch(error => console.error('Error:', error));
+  }, []);
+
+  const handleSubmit = async () => {
+    const postData = {
+        title,
+        description
+    };
+
+    console.log('📤 Data Sent to Server:', postData); // ✅ Log data before sending
+
+    try {
+        const response = await fetch('http://10.0.2.2:3000/addPost', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(postData)
+        });
+
+        const data = await response.json();
+        console.log('📩 Server Response:', data); // ✅ Log server response
+
+        if (response.ok) {
+            Alert.alert('Success', 'Post added successfully!');
+            navigation.navigate('Explore');
+        } else {
+            Alert.alert('Error', data.error);
+        }
+    } catch (error) {
+        console.error('❌ Network Error:', error); // ✅ Log network errors
+        Alert.alert('Error', 'Failed to connect to the server.');
+    }
+};
+
+
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -108,48 +168,57 @@ const AskLocalScreen = ({ navigation }) => {
         <Text style={styles.headerTitle}>{screenTitle}</Text>
       </View>
 
-      <View style={{ flex: 1 }}>
-      <FlatList
-          data={[...images, "add_button"]} // Adding 'add_button' as the last item
-          keyExtractor={(item, index) => index.toString()}
-          horizontal
-          renderItem={({ item, index }) => (
-            item === "add_button" ? (
-              images.length < 9 && (
-                <TouchableOpacity style={styles.uploadButton} onPress={pickImage}>
-                  <FontAwesome5 name="plus" size={20} color="white" />
-                </TouchableOpacity>
-              )
-            ) : (
-              <View style={styles.imageWrapper}>
-                <Image source={{ uri: item }} style={styles.uploadedImage} />
-                <TouchableOpacity
-                  style={styles.removeButton}
-                  onPress={() => removeImage(index)}
-                >
-                  <FontAwesome5 name="times" size={14} color="white" />
-                </TouchableOpacity>
-              </View>
-            )
-          )}
-        />
 
+      <View style={{ flex: 1 }}>
+        {screenTitle === "New Post" && (
+          <FlatList
+            data={[...images, "add_button"]}
+            keyExtractor={(item, index) => index.toString()}
+            horizontal
+            contentContainerStyle={{ paddingBottom: 0 }}
+            style={{ flexGrow: 0 }}  // Prevent FlatList from stretching
+            renderItem={({ item, index }) => (
+              item === "add_button" ? (
+                images.length < 9 && (
+                  <TouchableOpacity style={styles.uploadButton} onPress={pickImage}>
+                    <FontAwesome5 name="plus" size={20} color="white" />
+                  </TouchableOpacity>
+                )
+              ) : (
+                <View style={styles.imageWrapper}>
+                  <Image source={{ uri: item }} style={styles.uploadedImage} />
+                  <TouchableOpacity
+                    style={styles.removeButton}
+                    onPress={() => removeImage(index)}
+                  >
+                    <FontAwesome5 name="times" size={14} color="white" />
+                  </TouchableOpacity>
+                </View>
+              )
+            )}
+          />
+        )}
+
+
+        {/* Title Input (No Margin) */}
         <TextInput
-          style={styles.titleInput}
+          style={[styles.titleInput, { marginTop: 0 }]}  // No top margin
           placeholder="Add a title"
           placeholderTextColor="#bbb"
           value={title}
           onChangeText={setTitle}
         />
 
+        {/* Description Input (No Margin) */}
         <TextInput
-          style={styles.descriptionInput}
+          style={[styles.descriptionInput, { marginTop: 0 }]}  // No top margin
           placeholder="Add text"
           placeholderTextColor="#bbb"
           multiline
           value={description}
           onChangeText={setDescription}
         />
+
 
         <View style={styles.optionsContainer}>
           <TouchableOpacity style={styles.optionButton}>
@@ -158,11 +227,84 @@ const AskLocalScreen = ({ navigation }) => {
         </View>
 
         <View style={styles.locationPrivacyContainer}>
-          <TouchableOpacity style={styles.locationButton}>
+          <TouchableOpacity
+            style={styles.locationButton}
+            onPress={() => setShowMapModal(true)}
+          >
             <FontAwesome5 name="map-marker-alt" size={16} color="#8A2BE2" />
             <Text style={styles.locationText}>Mark Locations</Text>
           </TouchableOpacity>
+
+          {selectedLocation && (
+            <Text style={styles.locationText}>
+              Selected Location: {selectedLocation.name}, {selectedLocation.address}
+            </Text>
+          )}
         </View>
+
+        {/* Modal for Location Search */}
+        <Modal
+          visible={showMapModal}
+          animationType="slide"
+          transparent={true}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Search Location</Text>
+
+              <GooglePlacesAutocomplete
+                placeholder="Search Starbucks"
+                fetchDetails={true}
+                onPress={(data, details = null) => handleLocationSelect(details)}
+                query={{
+                  key: process.env.GOOGLE_PLACES_API_KEY,
+                  language: 'en',
+                  radius: 5000,
+                  location: '3.1905,101.7133',
+                }}
+                keyboardShouldPersistTaps="handled"
+                styles={{
+                  textInput: styles.searchInput,
+                  listView: styles.searchResults,
+                }}
+              />
+
+
+              <TouchableOpacity
+                style={styles.doneButton}
+                onPress={() => setShowMapModal(false)}
+              >
+                <Text style={styles.doneButtonText}>Done</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1 }}
+        >
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={{ flex: 1 }}>
+              <GooglePlacesAutocomplete
+                placeholder="Search nearby locations..."
+                fetchDetails={true}
+                onPress={(data, details = null) => handleLocationSelect(details)}
+                query={{
+                  key: GOOGLE_PLACES_API_KEY,
+                  language: 'en',
+                  radius: 5000,
+                  location: '3.1905,101.7133',
+                }}
+                keyboardShouldPersistTaps="handled"
+                styles={{
+                  textInput: styles.searchInput,
+                  listView: styles.searchResults,
+                }}
+              />
+            </View>
+          </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
+
       </View>
 
       <View style={styles.bottomActions}>
@@ -175,7 +317,8 @@ const AskLocalScreen = ({ navigation }) => {
           </View>
           <Text style={styles.contentGptText}>Content GPT</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.postButton} onPress={() => setShowSimilarQuestions(true)}>
+        {/* <TouchableOpacity style={styles.postButton} onPress={() => setShowSimilarQuestions(true)}></TouchableOpacity> */}
+        <TouchableOpacity style={styles.postButton} onPress={handleSubmit}>
           <Text style={styles.postButtonText}>{screenButton}</Text>
         </TouchableOpacity>
       </View>
@@ -229,7 +372,7 @@ const AskLocalScreen = ({ navigation }) => {
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Priority detected: {priorityLevel}</Text>
             <Text style={styles.modalDescription}>Would you like to add a priority fee for faster response?</Text>
-            <TouchableOpacity style={styles.priorityOption} onPress={() => navigation.navigate("Payment") }>
+            <TouchableOpacity style={styles.priorityOption} onPress={() => navigation.navigate("Payment")}>
               <Text style={styles.priorityText}>Priority</Text>
               <Text style={styles.priorityFee}>RM 2.00</Text>
             </TouchableOpacity>
@@ -246,8 +389,8 @@ const AskLocalScreen = ({ navigation }) => {
           </View>
         </View>
       </Modal>
-       {/* Success Modal */}
-       <Modal visible={showSuccessModal} animationType="fade" transparent={true}>
+      {/* Success Modal */}
+      <Modal visible={showSuccessModal} animationType="fade" transparent={true}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Posted Question Successfully!</Text>
@@ -257,6 +400,7 @@ const AskLocalScreen = ({ navigation }) => {
           </View>
         </View>
       </Modal>
+
     </View>
   );
 };
@@ -316,20 +460,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 16,
   },
-  uploadButton: {
-    width: 80,
-    height: 80,
-    backgroundColor: "#1a1a1a",
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    marginLeft: 10,
-  },
   titleInput: {
     fontSize: 18,
     fontWeight: "bold",
     color: "white",
-    marginBottom: 8,
+    marginBottom: 10,     // Maintain clean spacing
+    marginTop: 10,        // Adds minimal space from FlatList
     borderBottomWidth: 1,
     borderBottomColor: "#444",
     paddingBottom: 5,
@@ -342,6 +478,17 @@ const styles = StyleSheet.create({
     borderBottomColor: "#444",
     paddingBottom: 5,
   },
+  uploadButton: {
+    width: 80,
+    height: 80,
+    backgroundColor: "#1a1a1a",
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 10,
+    marginTop: 5,      // Reduces spacing at top for cleaner look
+  },
+
   optionsContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -510,7 +657,60 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     fontWeight: "bold",
+  }, locationPrivacyContainer: {
+    paddingTop: 10,
+    marginTop: 10,
   },
+  locationButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  locationText: {
+    color: "#8A2BE2",
+    fontSize: 14,
+    marginLeft: 5,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+  },
+  modalContent: {
+    backgroundColor: "#222",
+    padding: 20,
+    borderRadius: 10,
+    width: "90%",
+  },
+  modalTitle: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  searchInput: {
+    backgroundColor: "#1a1a1a",
+    color: "#fff",
+    borderRadius: 10,
+    padding: 10,
+  },
+  searchResults: {
+    backgroundColor: "#2a2a2a",
+  },
+  doneButton: {
+    backgroundColor: "#A855F7",
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: "center",
+    marginTop: 10,
+  },
+  doneButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+
 });
 
 export default AskLocalScreen;

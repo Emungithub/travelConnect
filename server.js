@@ -97,4 +97,41 @@ function authenticateToken(req, res, next) {
     });
 }
 
+// ==============================
+// Add Post Endpoint
+// ==============================
+app.post('/addPost', (req, res) => {
+    const { title, description } = req.body;
+
+    console.log('📥 Incoming Data:', req.body);  // ✅ Log received data
+
+    if (!title || !description) {  // ✅ Location removed from condition
+        return res.status(400).json({ error: 'Title and description are required.' });
+    }
+
+    const sql = `INSERT INTO posts (title, description) VALUES (?, ?)`;
+
+    db.query(sql, [title, description], (err, result) => {
+        if (err) {
+            console.error("❌ Database Insert Error:", err);  // ✅ Log database errors
+            return res.status(500).json({ error: 'Failed to save post.' });
+        }
+        res.status(201).json({ message: 'Post added successfully!', postId: result.insertId });
+    });
+});
+
+app.get('/getPosts', (req, res) => {
+    const sql = `SELECT id, title, description FROM posts ORDER BY created_at DESC`;
+
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error("❌ Database Fetch Error:", err);
+            return res.status(500).json({ error: 'Failed to fetch posts.' });
+        }
+        res.json(results); // Return all posts
+    });
+});
+
+
+
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

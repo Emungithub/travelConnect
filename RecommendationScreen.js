@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native"; // Import useNavigation
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const interests = [
   { id: "1", name: "Attractions", image: require("./assets/interest/attractions.png") },
@@ -34,6 +35,11 @@ export default function RecommendationScreen() {
     );
   };
 
+  const handleContinue = async () => {
+    await AsyncStorage.setItem('hasChosenRecommendation', 'true');
+    navigation.navigate('Explore');
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Select your interests</Text>
@@ -50,9 +56,9 @@ export default function RecommendationScreen() {
         )}
       />
       <TouchableOpacity style={styles.button}
-        onPress={() => navigation.navigate("Explore")} // Navigate to ExploreScreen
+        onPress={handleContinue} // Navigate to ExploreScreen
       >
-        <Text style={styles.buttonText}>Confirm Selection</Text>
+        <Text style={styles.buttonText}>Continue </Text>
       </TouchableOpacity>
     </View>
   );
