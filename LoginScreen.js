@@ -14,9 +14,6 @@ export default function LoginScreen({ }) {
   const [password, setPassword] = useState('');
   const [isLogin, setIsLogin] = useState(true); // State to toggle between login and register
 
-  const handleContinue = () => {
-    navigation.navigate('Recommendation');
-  }
   const handleRegister = async () => {
     console.log("Attempting to Register...");
 
@@ -59,7 +56,7 @@ export default function LoginScreen({ }) {
         if (hasChosenRecommendation) {
           navigation.navigate('Explore');
         } else {
-          navigation.navigate('Recommendation');
+          navigation.navigate('CountrySelection');
         }
       } else {
         Alert.alert('Error', data.error);
@@ -131,11 +128,6 @@ export default function LoginScreen({ }) {
           </Text>
         </>
       )}
-
-      {/* Continue Button */}
-      <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-        <Text style={styles.continueText}>Continue</Text>
-      </TouchableOpacity>
 
 
       {/* Terms */}
