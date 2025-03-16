@@ -71,7 +71,7 @@ export default function LoginScreen({ }) {
     <View style={styles.container}>
 
       {/* Logo */}
-      <Image source={require("./assets/travelConnectLogo.png")} style={styles.logo} />
+      <Image source={require("../assets/travelConnectLogo.png")} style={styles.logo} />
 
       {/* Title */}
       <Text style={styles.title}>

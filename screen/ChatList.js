@@ -66,8 +66,8 @@ const ChatList = () => {
           <View key={chat.id} style={styles.chatItem}>
             <View style={styles.chatLeft}>
               <View style={styles.profileContainer}>
-                <Image source={require("./assets/explore/1.png")} style={styles.profileImage} />
-                <Image source={require("./assets/flag/china.png")} style={styles.flagIcon} />
+                <Image source={require("../assets/explore/1.png")} style={styles.profileImage} />
+                <Image source={require("../assets/flag/china.png")} style={styles.flagIcon} />
               </View>
               <View>
                 <Text style={styles.chatName}>{chat.name}</Text>

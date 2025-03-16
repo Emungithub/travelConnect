@@ -4,25 +4,25 @@ import { useNavigation } from "@react-navigation/native"; // Import useNavigatio
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const interests = [
-  { id: "1", name: "Attractions", image: require("./assets/interest/attractions.png") },
-  { id: "2", name: "Stay", image: require("./assets/interest/stay.png") },
-  { id: "3", name: "Transport", image: require("./assets/interest/transport.png") },
-  { id: "4", name: "Shopping", image: require("./assets/interest/shopping.png") },
-  { id: "5", name: "Culture", image: require("./assets/interest/culture.png") },
-  { id: "6", name: "Food", image: require("./assets/interest/food.png") },
-  { id: "7", name: "History", image: require("./assets/interest/history.png") },
-  { id: "8", name: "Nightlife", image: require("./assets/interest/nightlife.png") },
-  { id: "9", name: "Nature", image: require("./assets/interest/nature.png") },
-  { id: "10", name: "Adventure", image: require("./assets/interest/adventure.png") },
-  { id: "11", name: "Cafe", image: require("./assets/interest/cafe.png") },
-  { id: "12", name: "Coworking", image: require("./assets/interest/coworking.png") },
-  { id: "13", name: "Internet", image: require("./assets/interest/internet.png") },
-  { id: "14", name: "Local", image: require("./assets/interest/local.png") },
-  { id: "15", name: "Sea", image: require("./assets/interest/sea.png") },
-  { id: "16", name: "Solo Travel", image: require("./assets/interest/solotravel.png") },
-  { id: "17", name: "Sport", image: require("./assets/interest/sport.png") },
-  { id: "18", name: "Events", image: require("./assets/interest/events.png") },
-];
+  { id: "1", name: "Attractions", image: require("../assets/interest/attractions.png") },
+  { id: "2", name: "Stay", image: require("../assets/interest/stay.png") },
+  { id: "3", name: "Transport", image: require("../assets/interest/transport.png") },
+  { id: "4", name: "Shopping", image: require("../assets/interest/shopping.png") },
+  { id: "5", name: "Culture", image: require("../assets/interest/culture.png") },
+  { id: "6", name: "Food", image: require("../assets/interest/food.png") },
+  { id: "7", name: "History", image: require("../assets/interest/history.png") },
+  { id: "8", name: "Nightlife", image: require("../assets/interest/nightlife.png") },
+  { id: "9", name: "Nature", image: require("../assets/interest/nature.png") },
+  { id: "10", name: "Adventure", image: require("../assets/interest/adventure.png") },
+  { id: "11", name: "Cafe", image: require("../assets/interest/cafe.png") },
+  { id: "12", name: "Coworking", image: require("../assets/interest/coworking.png") },
+  { id: "13", name: "Internet", image: require("../assets/interest/internet.png") },
+  { id: "14", name: "Local", image: require("../assets/interest/local.png") },
+  { id: "15", name: "Sea", image: require("../assets/interest/sea.png") },
+  { id: "16", name: "Solo Travel", image: require("../assets/interest/solotravel.png") },
+  { id: "17", name: "Sport", image: require("../assets/interest/sport.png") },
+  { id: "18", name: "Events", image: require("../assets/interest/events.png") },
+];  
 
 
 export default function RecommendationScreen() {

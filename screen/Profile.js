@@ -16,7 +16,7 @@ const Profile = () => {
       <ScrollView>
         {/* Profile Summary */}
         <View style={styles.profileSummary}>
-          <Image source={require("./assets/explore/2.png")} style={styles.profilePic} />
+          <Image source={require("../assets/explore/2.png")} style={styles.profilePic} />
           <View style={styles.profileTextContainer}>
             <Text style={styles.profileName}>Eemun Leong</Text>
             <Text style={styles.profileLocation}>Kuala Lumpur, Malaysia</Text>

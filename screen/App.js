@@ -18,6 +18,8 @@ import ExploreDetail from './ExploreDetail';
 import CountrySelectionScreen from './CountrySelectionScreen';
 import LanguageSelectionScreen from './LanguageSelectionScreen';
 import BasicInfoScreen from './BasicInfoScreen';
+import IntroductionScreen from './IntroductionScreen';
+import ProfilePictureScreen from './ProfilePictureScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -27,10 +29,12 @@ export default function App() {
       <StatusBar style="dark" />      
       <NavigationContainer>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
-          {/* <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="CountrySelection" component={CountrySelectionScreen} /> */}
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="CountrySelection" component={CountrySelectionScreen} />
           <Stack.Screen name="BasicInfo" component={BasicInfoScreen} />
           <Stack.Screen name="LanguageSelection" component={LanguageSelectionScreen} />
+          <Stack.Screen name="Introduction" component={IntroductionScreen} />
+          <Stack.Screen name="ProfilePicture" component={ProfilePictureScreen} />
           <Stack.Screen name="Recommendation" component={RecommendationScreen} />
           <Stack.Screen name="Explore" component={ExploreScreen} />
           <Stack.Screen name="AskLocal" component={AskLocalScreen} />

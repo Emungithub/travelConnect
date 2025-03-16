@@ -11,8 +11,8 @@ const users = [
         location: "Kuala Lumpur, Malaysia",
         tag: "China",
         bio: "I am Ee Mun from Malaysia, I would like to make friends and share the insights of Malaysia...",
-        profileImage: require("./assets/explore/1.png"),
-        flagIcon: require("./assets/explore/1.png"),
+        profileImage: require("../assets/explore/1.png"),
+        flagIcon: require("../assets/explore/1.png"),
         tags: ["Cancer", "Blood O", "INFJ", "Japan", "Software Engineer", "Malaysia", "Secret"],
     },
     {
@@ -21,8 +21,8 @@ const users = [
         tag: "Korean",
         location: "Penang, Malaysia",
         bio: "Hey there! I'm John. I love meeting new people and exploring different cultures.",
-        profileImage: require("./assets/explore/1.png"),
-        flagIcon: require("./assets/explore/1.png"),
+        profileImage: require("../assets/explore/1.png"),
+        flagIcon: require("../assets/explore/1.png"),
         tags: ["Leo", "A+", "ENTP", "Gaming", "Digital Nomad", "Adventure"],
     },
 ];
@@ -49,9 +49,9 @@ const ConnectPage = () => {
                                 <Image
                                     source={
                                         item.tag === "China"
-                                            ? require("./assets/flag/china.png")
+                                            ? require("../assets/flag/china.png")
                                             : item.tag === "Korean"
-                                                ? require("./assets/flag/korea.png")
+                                                ? require("../assets/flag/korea.png")
                                                 : null
                                     }
                                     style={styles.flagIcon}

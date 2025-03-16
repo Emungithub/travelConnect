@@ -60,7 +60,7 @@ const PaymentScreen = () => {
       <Modal visible={showSuccessModal} animationType="slide" transparent={true}>
         <View style={styles.successModalContainer}>
           <View style={styles.successModalContent}>
-            <Image source={require("./assets/travelConnectLogo.png")} style={styles.successIcon} />
+            <Image source={require("../assets/travelConnectLogo.png")} style={styles.successIcon} />
             <Text style={styles.successTitle}>Payment successful!</Text>
             <Text style={styles.successMessage}>Your request will be responded to within 15 minutes.</Text>
             <TouchableOpacity style={styles.confirmButton} onPress={() => setShowSuccessModal(false)}>
