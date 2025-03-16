@@ -8,7 +8,7 @@ import {
     StyleSheet,
 } from "react-native";
 import { FontAwesome5, Ionicons } from "@expo/vector-icons";
-import { DEEPSEEK_API_KEY } from '@env';
+import { OPENAI_API_KEY } from '@env';  // Ensure your .env file is properly configured
 
 const ContentGPT = ({ navigation }) => {
     const [messages, setMessages] = useState([]);
@@ -17,48 +17,59 @@ const ContentGPT = ({ navigation }) => {
 
     const handleSend = async () => {
         if (inputText.trim().length === 0) return;
+
         const newMessage = { id: Date.now().toString(), text: inputText, sender: "user" };
         setMessages((prevMessages) => [...prevMessages, newMessage]);
         setInputText("");
 
-        // Scroll to the bottom when a new message is added
         flatListRef.current.scrollToEnd({ animated: true });
 
-        // Simulate a delay for the bot's response
-        setTimeout(async () => {
-            try {
-                const response = await fetch("https://api.deepseek.com/v1/chat", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${DEEPSEEK_API_KEY}`, // Use the API key from .env
-                    },
-                    body: JSON.stringify({ message: inputText }),
-                });
-                const data = await response.json();
-                const botMessage = { id: Date.now().toString(), text: data.reply, sender: "bot" };
-                setMessages((prevMessages) => [...prevMessages, botMessage]);
+        try {
+            const response = await fetch("https://api.openai.com/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${OPENAI_API_KEY}`,
+                },
+                body: JSON.stringify({
+                    model: "gpt-4",
+                    messages: [{ role: "user", content: inputText }],
+                    max_tokens: 100,
+                }),
+                keepalive: true, // Prevents Expo from closing the connection early
+            });
 
-                // Scroll to the bottom when a new message is added
+            const data = await response.json();
+
+            if (response.ok) {
+                const botMessage = {
+                    id: Date.now().toString(),
+                    text: data.choices[0].message.content,
+                    sender: "bot"
+                };
+                setMessages((prevMessages) => [...prevMessages, botMessage]);
                 flatListRef.current.scrollToEnd({ animated: true });
-            } catch (error) {
-                console.error("Error fetching response from DeepSeek API:", error);
+            } else {
+                console.error("API Error:", data);
+                alert(`Error: ${data.error.message}`);
             }
-        }, 1000); // Simulate a 1-second delay
+
+        } catch (error) {
+            console.error("Network Error:", error);
+            alert("Network error. Please check your connection.");
+        }
     };
 
     return (
         <View style={styles.container}>
-            {/* Header Section */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                     <FontAwesome5 name="arrow-left" size={20} color="white" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>ContentGPT</Text>
-                <View style={{ width: 20 }} /> {/* Placeholder to center the title */}
-            </View> 
+                <View style={{ width: 20 }} />
+            </View>
 
-            {/* Chat Messages Section */}
             <FlatList
                 ref={flatListRef}
                 data={messages}
@@ -71,7 +82,6 @@ const ContentGPT = ({ navigation }) => {
                 contentContainerStyle={styles.messagesContainer}
             />
 
-            {/* Input Section */}
             <View style={styles.inputContainer}>
                 <TouchableOpacity style={styles.plusButton}>
                     <Ionicons name="add-outline" size={24} color="white" />
@@ -91,7 +101,6 @@ const ContentGPT = ({ navigation }) => {
     );
 };
 
-// Styles
 const styles = StyleSheet.create({
     container: {
         flex: 1,
