@@ -70,11 +70,13 @@ app.post('/login', async (req, res) => {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
-        // Generate JWT Token for session
-        const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-        res.json({ message: 'Login successful', token });
+        const token = jwt.sign({ id: user.id, email }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+        // Return email so frontend can save it for later
+        res.json({ message: 'Login successful', token, email });
     });
 });
+
 
 // ==============================
 // Protected Route (For Testing)
@@ -101,36 +103,97 @@ function authenticateToken(req, res, next) {
 // Add Post Endpoint
 // ==============================
 app.post('/addPost', (req, res) => {
-    const { title, description } = req.body;
+    const { email, title, description } = req.body;
 
-    console.log('📥 Incoming Data:', req.body);  // ✅ Log received data
-
-    if (!title || !description) {  // ✅ Location removed from condition
-        return res.status(400).json({ error: 'Title and description are required.' });
+    if (!email || !title || !description) {
+        return res.status(400).json({ error: 'Email, title, and description are required.' });
     }
 
-    const sql = `INSERT INTO posts (title, description) VALUES (?, ?)`;
-
-    db.query(sql, [title, description], (err, result) => {
+    // Step 1: Fetch user profile details
+    const fetchProfileSQL = `SELECT name, profile_image, country, id FROM user_profiles WHERE email = ?`;
+    
+    db.query(fetchProfileSQL, [email], (err, results) => {
         if (err) {
-            console.error("❌ Database Insert Error:", err);  // ✅ Log database errors
-            return res.status(500).json({ error: 'Failed to save post.' });
+            console.error('❌ Database Error (Fetching Profile):', err);
+            return res.status(500).json({ error: 'Failed to fetch user profile.' });
         }
-        res.status(201).json({ message: 'Post added successfully!', postId: result.insertId });
+
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'User profile not found.' });
+        }
+
+        const { name, profile_image, country, id: user_id } = results[0];
+
+        // Step 2: Insert new post with user profile data
+        const insertPostSQL = `
+            INSERT INTO posts (title, description, name, profile_image, country, user_id)
+            VALUES (?, ?, ?, ?, ?, ?)
+        `;
+
+        db.query(insertPostSQL, [title, description, name, profile_image, country, user_id], (err, result) => {
+            if (err) {
+                console.error('❌ Database Error (Inserting Post):', err);
+                return res.status(500).json({ error: 'Failed to save post.' });
+            }
+
+            res.status(201).json({ message: 'Post added successfully!', postId: result.insertId });
+        });
     });
 });
 
+
 app.get('/getPosts', (req, res) => {
-    const sql = `SELECT id, title, description FROM posts ORDER BY created_at DESC`;
+    const sql = `
+        SELECT p.id, p.title, p.description, up.name, up.profile_image, up.country
+        FROM posts p
+        JOIN user_profiles up ON p.user_id = up.id
+        ORDER BY p.created_at DESC
+    `;
 
     db.query(sql, (err, results) => {
         if (err) {
             console.error("❌ Database Fetch Error:", err);
             return res.status(500).json({ error: 'Failed to fetch posts.' });
         }
-        res.json(results); // Return all posts
+
+        console.log('✅ Data from Database:', results);
+        res.json(results);
     });
 });
+
+
+// Endpoint to Save User Data
+app.post('/saveUserData', (req, res) => {
+    const { email, country, language, name, gender, profileImage } = req.body;
+
+    console.log('📥 Incoming Data:', req.body);
+
+    if (!email || !country || !language || !name || !gender || !profileImage) {
+        console.error('❌ Missing fields:', { email, country, language, name, gender, profileImage });
+        return res.status(400).json({ error: 'All fields are required' });
+    }
+
+    const sql = `
+        INSERT INTO user_profiles (email, country, language, name, gender, profile_image)
+        VALUES (?, ?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE
+        country = VALUES(country), language = VALUES(language),
+        name = VALUES(name), gender = VALUES(gender), profile_image = VALUES(profile_image)
+    `;
+
+    db.query(sql, [email, country, language, name, gender, decodeURIComponent(profileImage)], (err, result) => {
+        if (err) {
+            console.error('❌ Database Error:', err.message);
+            return res.status(500).json({ error: 'Failed to save profile data' });
+        }
+
+        console.log('✅ Data saved successfully:', result);
+        res.status(200).json({ message: 'Profile data saved successfully' });
+    });
+});
+
+
+
 
 
 

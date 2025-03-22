@@ -3,6 +3,7 @@ import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native
 import { Ionicons } from '@expo/vector-icons'; 
 import * as Progress from 'react-native-progress';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const popularCountries = [
   { name: 'USA', flag: '🇺🇸' },
@@ -25,15 +26,15 @@ const CountrySelectionScreen = () => {
     setSelectedCountry(country);
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!selectedCountry) {
       alert('Please select a country before confirming.');
       return;
     }
 
-    // Navigate back to BasicInfoScreen and pass the selected country and progress value
-    navigation.navigate('BasicInfo', { selectedCountry, progress: 0.2 });
-  };
+    await AsyncStorage.setItem('selectedCountry', selectedCountry);
+    navigation.navigate('BasicInfo', { selectedCountry });
+};
 
   const renderCountry = ({ item }) => (
     <TouchableOpacity 

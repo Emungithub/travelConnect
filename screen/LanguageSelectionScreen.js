@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const popularLanguages = [
   { name: 'English', native: 'English' },
@@ -14,8 +16,31 @@ const popularLanguages = [
 ];
 
 const LanguageSelectionScreen = () => {
+  const navigation = useNavigation();
+  const [selectedLanguage, setSelectedLanguage] = useState(null);
+
+  const handleLanguageSelect = (language) => {
+    setSelectedLanguage(language);
+  };
+
+  const handleConfirm = async () => {
+    if (!selectedLanguage) {
+      alert('Please select a language before confirming.');
+      return;
+    }
+
+    await AsyncStorage.setItem('selectedLanguage', selectedLanguage);
+    navigation.navigate('BasicInfo', { selectedLanguage });
+};
+
   const renderLanguage = ({ item }) => (
-    <TouchableOpacity style={styles.languageItem}>
+    <TouchableOpacity 
+      style={[
+        styles.languageItem, 
+        selectedLanguage === item.name && styles.selectedLanguage
+      ]}
+      onPress={() => handleLanguageSelect(item.name)}
+    >
       <View style={styles.textContainer}>
         <Text style={styles.languageText}>{item.name}</Text>
         <Text style={styles.nativeText}>{item.native}</Text>
@@ -32,6 +57,14 @@ const LanguageSelectionScreen = () => {
         keyExtractor={(item) => item.name}
         renderItem={renderLanguage}
       />
+
+      {/* Confirm Button */}
+      <TouchableOpacity
+        style={styles.confirmButton}
+        onPress={handleConfirm}
+      >
+        <Text style={styles.confirmText}>Confirm</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -61,6 +94,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 10,
   },
+  selectedLanguage: {
+    borderColor: '#a88bf5',
+    borderWidth: 2,
+  },
   textContainer: {
     flexDirection: 'column',
   },
@@ -71,6 +108,18 @@ const styles = StyleSheet.create({
   nativeText: {
     fontSize: 14,
     color: '#aaa',
+  },
+  confirmButton: {
+    backgroundColor: '#a88bf5',
+    borderRadius: 20,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  confirmText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 

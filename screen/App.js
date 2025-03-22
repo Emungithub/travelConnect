@@ -29,7 +29,7 @@ export default function App() {
       <StatusBar style="dark" />      
       <NavigationContainer>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
-          {/* <Stack.Screen name="Login" component={LoginScreen} /> */}
+          <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="BasicInfo" component={BasicInfoScreen} />
           <Stack.Screen name="CountrySelection" component={CountrySelectionScreen} />
           <Stack.Screen name="LanguageSelection" component={LanguageSelectionScreen} />
