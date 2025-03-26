@@ -31,22 +31,31 @@ db.connect((err) => {
 // ==============================
 // Register Endpoint
 // ==============================
-app.post('/register', (req, res) => {
+app.post('/register', async (req, res) => {
     const { email, password } = req.body;
-
+  
     if (!email || !password) {
-        return res.status(400).json({ error: 'Email and password are required.' });
+      return res.status(400).json({ error: 'Email and password are required.' });
     }
-
-    const sql = 'INSERT INTO users (email, password) VALUES (?, ?)';
-    db.query(sql, [email, password], (err, result) => {
+  
+    try {
+      // Hash the password before storing
+      const hashedPassword = await bcrypt.hash(password, 10);
+  
+      const sql = 'INSERT INTO users (email, password) VALUES (?, ?)';
+      db.query(sql, [email, hashedPassword], (err, result) => {
         if (err) {
-            console.error("Database Insert Error:", err);
-            return res.status(500).json({ error: 'Failed to register user.' });
+          console.error("❌ Database Insert Error:", err);
+          return res.status(500).json({ error: err.message || 'Failed to register user.' });
         }
-        res.status(201).json({ message: 'User registered successfully.' });
-    });
-});
+        res.status(201).json({ message: 'User registered successfully.', email });
+      });
+    } catch (error) {
+      console.error("❌ Bcrypt Error:", error);
+      res.status(500).json({ error: 'Something went wrong during registration.' });
+    }
+  });
+  
 
 
 // ==============================
@@ -164,24 +173,35 @@ app.get('/getPosts', (req, res) => {
 
 // Endpoint to Save User Data
 app.post('/saveUserData', (req, res) => {
-    const { email, country, language, name, gender, profileImage } = req.body;
+    const { user_id, email, country, language, name, gender, profileImage } = req.body;
 
     console.log('📥 Incoming Data:', req.body);
 
-    if (!email || !country || !language || !name || !gender || !profileImage) {
-        console.error('❌ Missing fields:', { email, country, language, name, gender, profileImage });
+    if (!user_id || !email || !country || !language || !name || !gender || !profileImage) {
+        console.error('❌ Missing fields:', { user_id, email, country, language, name, gender, profileImage });
         return res.status(400).json({ error: 'All fields are required' });
     }
 
     const sql = `
-        INSERT INTO user_profiles (email, country, language, name, gender, profile_image)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO user_profiles (user_id, email, country, language, name, gender, profile_image)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         ON DUPLICATE KEY UPDATE
-        country = VALUES(country), language = VALUES(language),
-        name = VALUES(name), gender = VALUES(gender), profile_image = VALUES(profile_image)
+        country = VALUES(country), 
+        language = VALUES(language),
+        name = VALUES(name), 
+        gender = VALUES(gender), 
+        profile_image = VALUES(profile_image)
     `;
 
-    db.query(sql, [email, country, language, name, gender, decodeURIComponent(profileImage)], (err, result) => {
+    db.query(sql, [
+        user_id,
+        email,
+        country,
+        language,
+        name,
+        gender,
+        decodeURIComponent(profileImage)
+    ], (err, result) => {
         if (err) {
             console.error('❌ Database Error:', err.message);
             return res.status(500).json({ error: 'Failed to save profile data' });
@@ -191,8 +211,6 @@ app.post('/saveUserData', (req, res) => {
         res.status(200).json({ message: 'Profile data saved successfully' });
     });
 });
-
-
 
 
 

@@ -32,7 +32,7 @@ export default function LoginScreen({ }) {
       if (response.ok) {
         Alert.alert('Success', 'Registration successful!');
         // Store email after successful login
-await AsyncStorage.setItem('userEmail', data.email);
+        await AsyncStorage.setItem('userEmail', data.email);
 
       } else {
         Alert.alert('Error', data.error || 'Unknown error occurred.');
@@ -55,8 +55,10 @@ await AsyncStorage.setItem('userEmail', data.email);
       const data = await response.json();
       if (response.ok) {
         await AsyncStorage.setItem('userEmail', email); // ✅ Save the email
-    Alert.alert('Success', 'Login successful!');
-    navigation.navigate('BasicInfo');
+        // await AsyncStorage.setItem('userId', data.id.toString()); // ✅ this is what you need
+
+        Alert.alert('Success', 'Login successful!');
+        navigation.navigate('BasicInfo');
         // // Check if the user has already chosen a recommendation
         // const hasChosenRecommendation = await AsyncStorage.getItem('hasChosenRecommendation');
         // if (hasChosenRecommendation) {
