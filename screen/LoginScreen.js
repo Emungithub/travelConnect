@@ -32,8 +32,10 @@ export default function LoginScreen({ }) {
       if (response.ok) {
         Alert.alert('Success', 'Registration successful!');
         // Store email after successful login
-        await AsyncStorage.setItem('userEmail', data.email);
+        console.log("🧠 Registered user ID:", data.id.toString());
 
+        await AsyncStorage.setItem('userEmail', data.email);
+        await AsyncStorage.setItem('userId', data.id.toString());
       } else {
         Alert.alert('Error', data.error || 'Unknown error occurred.');
       }
@@ -53,9 +55,11 @@ export default function LoginScreen({ }) {
       });
 
       const data = await response.json();
+      console.log("🧠 data ID:", data);
       if (response.ok) {
+
         await AsyncStorage.setItem('userEmail', email); // ✅ Save the email
-        // await AsyncStorage.setItem('userId', data.id.toString()); // ✅ this is what you need
+        await AsyncStorage.setItem('userId', data.id.toString()); // ✅ this is what you need
 
         Alert.alert('Success', 'Login successful!');
         navigation.navigate('BasicInfo');
@@ -68,9 +72,12 @@ export default function LoginScreen({ }) {
         // }
       } else {
         Alert.alert('Error', data.error);
+
       }
     } catch (error) {
       Alert.alert('Error', 'Login failed');
+      console.log("🧠 Registered user ID:", error);
+      console.log("🧠 data:", data);
     }
   };
 

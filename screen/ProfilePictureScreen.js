@@ -2,35 +2,40 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Image, FlatList, Modal, StyleSheet, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
+import * as DocumentPicker from 'expo-document-picker';
+
 
 const ProfilePictureScreen = () => {
     const [profileImage, setProfileImage] = useState(null);
     const [imageList, setImageList] = useState([]); // Store picked images
     const [modalVisible, setModalVisible] = useState(false);
+    const navigation = useNavigation();
 
     // 📂 Pick Images from Device
     const pickImages = async () => {
-        console.log('📂 Opening document picker...');
         try {
-            const result = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ImagePicker.MediaTypeOptions.Images,
-                allowsEditing: false,
-                quality: 1,
-            });
-
-            console.log('📂 Picker Result:', result);
-
-            if (!result.canceled && result.assets.length > 0) {
-                setImageList(result.assets); // Store picked images in list
-                setModalVisible(true); // Show modal for selection
-            } else {
-                console.warn('⚠️ Image picking was canceled.');
-            }
+          const result = await DocumentPicker.getDocumentAsync({
+            type: "image/*", // You can change to '*/*' to allow all file types
+            multiple: false, // set to true if you want multiple document selection
+            copyToCacheDirectory: true
+          });
+      
+          console.log('📂 Picker Result:', result);
+      
+          if (result.assets && result.assets.length > 0) {
+            const selected = result.assets[0];
+            setImageList([selected]); // Store in array
+            setModalVisible(true);
+          } else {
+            console.warn("⚠️ Document picking was canceled.");
+          }
         } catch (error) {
-            console.error('❌ Error picking image:', error);
-            Alert.alert('Error', 'Failed to pick images. Please try again.');
+          console.error("❌ Error picking document:", error);
+          Alert.alert("Error", "Failed to pick a document. Please try again.");
         }
-    };
+      };
+      
 
     // ✅ Select Image from List
     const selectImage = async (imageUri) => {
@@ -38,6 +43,57 @@ const ProfilePictureScreen = () => {
         setProfileImage(imageUri);
         await AsyncStorage.setItem('profileImage', imageUri);
         setModalVisible(false); // Close modal
+    };
+
+    // ✅ Save Data Function (added from your snippet)
+    const handleSaveAllData = async () => {
+        const email = await AsyncStorage.getItem('userEmail');
+        const country = await AsyncStorage.getItem('selectedCountry');
+        const language = await AsyncStorage.getItem('selectedLanguage');
+        const name = await AsyncStorage.getItem('name');
+        const gender = await AsyncStorage.getItem('gender');
+        const profileImage = await AsyncStorage.getItem('profileImage');
+        const userId = await AsyncStorage.getItem('userId');
+        console.log("🧠 User ID from AsyncStorage:", userId);
+
+        console.log('🔍 Data to Save:', { userId, email, country, language, name, gender, profileImage });
+
+        if (!userId || !email || !country || !language || !name || !gender || !profileImage) {
+            alert('Please complete all required steps first.');
+            return;
+        }
+
+        const userData = {
+            user_id: userId,
+            email,
+            country,
+            language,
+            name,
+            gender,
+            profileImage: encodeURIComponent(profileImage)
+        };
+
+        try {
+            const response = await fetch('http://10.0.2.2:3000/saveUserData', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(userData)
+            });
+
+            const data = await response.json();
+
+            console.log('📥 Server Response:', data);
+
+            if (response.ok) {
+                console.log('✅ Profile saved:', data);
+                navigation.navigate('Explore');
+            } else {
+                Alert.alert('Error', data.error || 'Failed to save data.');
+            }
+        } catch (error) {
+            console.error('❌ Error saving data:', error);
+            Alert.alert('Error', 'Failed to save data. Please try again.');
+        }
     };
 
     return (
@@ -54,6 +110,17 @@ const ProfilePictureScreen = () => {
                 )}
             </TouchableOpacity>
 
+            <TouchableOpacity
+                style={[
+                    styles.saveButton,
+                    profileImage ? styles.activeSaveButton : styles.disabledSaveButton,
+                ]}
+                disabled={!profileImage}
+                onPress={handleSaveAllData}
+            >
+                <Text style={styles.saveButtonText}>Save & Continue</Text>
+            </TouchableOpacity>
+
             {/* Modal to Show Image List */}
             <Modal visible={modalVisible} animationType="slide" transparent={true}>
                 <View style={styles.modalBackground}>
@@ -64,11 +131,21 @@ const ProfilePictureScreen = () => {
                                 data={imageList}
                                 keyExtractor={(item) => item.uri}
                                 numColumns={3}
-                                renderItem={({ item }) => (
-                                    <TouchableOpacity onPress={() => selectImage(item.uri)}>
-                                        <Image source={{ uri: item.uri }} style={styles.imagePreview} />
-                                    </TouchableOpacity>
-                                )}
+                                renderItem={({ item }) => {
+                                    const isImage = item.mimeType?.startsWith("image/");
+                                    return (
+                                      <TouchableOpacity onPress={() => isImage && selectImage(item.uri)}>
+                                        {isImage ? (
+                                          <Image source={{ uri: item.uri }} style={styles.imagePreview} />
+                                        ) : (
+                                          <View style={[styles.imagePreview, { justifyContent: 'center', alignItems: 'center' }]}>
+                                            <Text style={{ color: '#fff', textAlign: 'center' }}>Not an image</Text>
+                                          </View>
+                                        )}
+                                      </TouchableOpacity>
+                                    );
+                                  }}
+                                  
                             />
                         ) : (
                             <Text style={styles.noImagesText}>No images found</Text>

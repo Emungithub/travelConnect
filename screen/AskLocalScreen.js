@@ -19,11 +19,14 @@ import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
 import { KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { useEffect } from "react";
-import {GOOGLE_PLACES_API_KEY} from "@env";
+import { GOOGLE_PLACES_API_KEY } from "@env";
 import { Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 
 const AskLocalScreen = ({ navigation }) => {
+  const [userId, setUserId] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [images, setImages] = useState([]);
@@ -127,35 +130,64 @@ const AskLocalScreen = ({ navigation }) => {
       .catch(error => console.error('Error:', error));
   }, []);
 
+  //here fetch user id
+  useEffect(() => {
+    const getUserId = async () => {
+      const id = await AsyncStorage.getItem("userId");
+
+      if (id) {
+        setUserId(Number(id));  // ✅ Convert to number
+        console.log("📦 Retrieved userId:", id);
+      } else {
+        console.warn("⚠️ No userId found in AsyncStorage!");
+      }
+    };
+    getUserId();
+  }, []);
+
+
   const handleSubmit = async () => {
     const postData = {
-        title,
-        description
+      user_id: userId,
+      title,
+      description
     };
-
-    console.log('📤 Data Sent to Server:', postData); // ✅ Log data before sending
-
+  
+    console.log('📤 Data Sent to Server:', postData);
+  
     try {
-        const response = await fetch('http://10.0.2.2:3000/addPost', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(postData)
-        });
-
-        const data = await response.json();
-        console.log('📩 Server Response:', data); // ✅ Log server response
-
-        if (response.ok) {
-            Alert.alert('Success', 'Post added successfully!');
-            navigation.navigate('Explore');
-        } else {
-            Alert.alert('Error', data.error);
-        }
+      const response = await fetch('http://10.0.2.2:3000/addPost', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(postData)
+      });
+  
+      const contentType = response.headers.get('content-type');
+      let data;
+  
+      if (contentType && contentType.includes('application/json')) {
+        data = await response.json(); // ✅ Parse once here
+      } else {
+        const text = await response.text(); // fallback
+        console.warn('⚠️ Received non-JSON response:', text);
+        data = { error: text }; // Optional: wrap fallback text as error
+      }
+  
+      console.log('📩 Server Response:', data);
+  
+      if (response.ok) {
+        Alert.alert('Success', 'Post added successfully!');
+        navigation.navigate('Explore');
+      } else {
+        Alert.alert('Error', data.error || 'Unknown error occurred.');
+      }
+  
     } catch (error) {
-        console.error('❌ Network Error:', error); // ✅ Log network errors
-        Alert.alert('Error', 'Failed to connect to the server.');
+      console.error('❌ Network Error:', error);
+      Alert.alert('Error', 'Failed to connect to the server.');
     }
-};
+  };
+  
 
 
   return (
@@ -566,7 +598,6 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.7)",
   },
   modalContent: {
-    backgroundColor: "#222",
     padding: 20,
     borderRadius: 10,
     width: "90%",
@@ -693,9 +724,6 @@ const styles = StyleSheet.create({
     color: "#fff",
     borderRadius: 10,
     padding: 10,
-  },
-  searchResults: {
-    backgroundColor: "#2a2a2a",
   },
   doneButton: {
     backgroundColor: "#A855F7",

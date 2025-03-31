@@ -39,7 +39,6 @@ app.post('/register', async (req, res) => {
     }
   
     try {
-      // Hash the password before storing
       const hashedPassword = await bcrypt.hash(password, 10);
   
       const sql = 'INSERT INTO users (email, password) VALUES (?, ?)';
@@ -48,13 +47,20 @@ app.post('/register', async (req, res) => {
           console.error("❌ Database Insert Error:", err);
           return res.status(500).json({ error: err.message || 'Failed to register user.' });
         }
-        res.status(201).json({ message: 'User registered successfully.', email });
+  
+        console.log('✅ User inserted with ID:', result.insertId);
+        res.status(201).json({
+          message: 'User registered successfully.',
+          email,
+          id: result.insertId, // ✅ Include user ID in response
+        });
       });
     } catch (error) {
       console.error("❌ Bcrypt Error:", error);
       res.status(500).json({ error: 'Something went wrong during registration.' });
     }
   });
+  
   
 
 
@@ -80,9 +86,9 @@ app.post('/login', async (req, res) => {
         }
 
         const token = jwt.sign({ id: user.id, email }, process.env.JWT_SECRET, { expiresIn: '1h' });
-
+        console.log('✅ test:', user);
         // Return email so frontend can save it for later
-        res.json({ message: 'Login successful', token, email });
+        res.json({ message: 'Login successful', token, email, id: user.id });
     });
 });
 
@@ -112,43 +118,28 @@ function authenticateToken(req, res, next) {
 // Add Post Endpoint
 // ==============================
 app.post('/addPost', (req, res) => {
-    const { email, title, description } = req.body;
+    const { user_id, title, description } = req.body;
 
-    if (!email || !title || !description) {
-        return res.status(400).json({ error: 'Email, title, and description are required.' });
+    if (!user_id || !title || !description) {
+        return res.status(400).json({ error: 'User ID, title, and description are required.' });
     }
 
-    // Step 1: Fetch user profile details
-    const fetchProfileSQL = `SELECT name, profile_image, country, id FROM user_profiles WHERE email = ?`;
-    
-    db.query(fetchProfileSQL, [email], (err, results) => {
+    const insertPostSQL = `
+        INSERT INTO posts (title, description, user_id)
+        VALUES (?, ?, ?)
+    `;
+
+    db.query(insertPostSQL, [title, description, user_id], (err, result) => {
+
         if (err) {
-            console.error('❌ Database Error (Fetching Profile):', err);
-            return res.status(500).json({ error: 'Failed to fetch user profile.' });
+            console.error('❌ Error inserting post:', err);
+            return res.status(500).json({ error: 'Failed to save post.' });
         }
 
-        if (results.length === 0) {
-            return res.status(404).json({ error: 'User profile not found.' });
-        }
-
-        const { name, profile_image, country, id: user_id } = results[0];
-
-        // Step 2: Insert new post with user profile data
-        const insertPostSQL = `
-            INSERT INTO posts (title, description, name, profile_image, country, user_id)
-            VALUES (?, ?, ?, ?, ?, ?)
-        `;
-
-        db.query(insertPostSQL, [title, description, name, profile_image, country, user_id], (err, result) => {
-            if (err) {
-                console.error('❌ Database Error (Inserting Post):', err);
-                return res.status(500).json({ error: 'Failed to save post.' });
-            }
-
-            res.status(201).json({ message: 'Post added successfully!', postId: result.insertId });
-        });
+        res.status(201).json({ message: 'Post added successfully!', postId: result.insertId });
     });
 });
+
 
 
 app.get('/getPosts', (req, res) => {
@@ -173,34 +164,32 @@ app.get('/getPosts', (req, res) => {
 
 // Endpoint to Save User Data
 app.post('/saveUserData', (req, res) => {
-    const { user_id, email, country, language, name, gender, profileImage } = req.body;
+    const { email, country, language, name, gender, profileImage } = req.body;
 
     console.log('📥 Incoming Data:', req.body);
 
-    if (!user_id || !email || !country || !language || !name || !gender || !profileImage) {
-        console.error('❌ Missing fields:', { user_id, email, country, language, name, gender, profileImage });
+    if (!email || !country || !language || !name || !gender || !profileImage) {
+        console.error('❌ Missing fields:', { email, country, language, name, gender, profileImage });
         return res.status(400).json({ error: 'All fields are required' });
     }
 
     const sql = `
-        INSERT INTO user_profiles (user_id, email, country, language, name, gender, profile_image)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        ON DUPLICATE KEY UPDATE
-        country = VALUES(country), 
-        language = VALUES(language),
-        name = VALUES(name), 
-        gender = VALUES(gender), 
-        profile_image = VALUES(profile_image)
+        UPDATE users 
+        SET country = ?, 
+            language = ?, 
+            name = ?, 
+            gender = ?, 
+            profile_image = ?
+        WHERE email = ?;
     `;
 
     db.query(sql, [
-        user_id,
-        email,
         country,
         language,
         name,
         gender,
-        decodeURIComponent(profileImage)
+        decodeURIComponent(profileImage),
+        email
     ], (err, result) => {
         if (err) {
             console.error('❌ Database Error:', err.message);
@@ -211,6 +200,8 @@ app.post('/saveUserData', (req, res) => {
         res.status(200).json({ message: 'Profile data saved successfully' });
     });
 });
+
+
 
 
 
