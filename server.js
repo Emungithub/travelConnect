@@ -144,22 +144,41 @@ app.post('/addPost', (req, res) => {
 
 app.get('/getPosts', (req, res) => {
     const sql = `
-        SELECT p.id, p.title, p.description, up.name, up.profile_image, up.country
+        SELECT p.id, p.title, p.description, u.name, u.profile_image, u.country
         FROM posts p
-        JOIN user_profiles up ON p.user_id = up.id
+        JOIN users u ON p.user_id = u.id
         ORDER BY p.created_at DESC
     `;
 
     db.query(sql, (err, results) => {
         if (err) {
-            console.error("❌ Database Fetch Error:", err);
-            return res.status(500).json({ error: 'Failed to fetch posts.' });
+            console.error("❌ Error fetching posts:", err);
+            return res.status(500).json({ error: "Failed to fetch posts." });
         }
-
-        console.log('✅ Data from Database:', results);
+        console.log("✅ Posts fetched:", results);
         res.json(results);
     });
 });
+
+app.get('/getQuestions', (req, res) => {
+    const sql = `
+      SELECT p.id, p.title, p.description, u.name, u.profile_image, u.country
+      FROM posts p
+      JOIN users u ON p.user_id = u.id
+      ORDER BY p.created_at DESC
+    `;
+  
+    db.query(sql, (err, results) => {
+      if (err) {
+        console.error("❌ Error fetching questions:", err);
+        return res.status(500).json({ error: "Failed to fetch questions." });
+      }
+  
+      console.log("✅ Questions fetched:", results);
+      res.json(results); // ✅ should return JSON
+    });
+  });
+  
 
 
 // Endpoint to Save User Data

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback} from "react";
 import {
   View,
   Text,
@@ -17,7 +17,7 @@ import ConnectPage from "./ConnectPage";
 import ChatList from "./ChatList";
 import Profile from './Profile';
 import ExploreDetail from './ExploreDetail';
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 // Categories for filtering
 const categories = ["Recommend", "Stay", "Food", "Attractions"];
 
@@ -30,7 +30,7 @@ const exploreData = [
     user: "test_24",
     profileImage: require("../assets/explore/solotravel.png"),
     rating: "90%",
-  },  
+  },
   {
     id: "2",
     title: "Experience Taman ABC Night Market",
@@ -334,7 +334,7 @@ const questionsData = [
       },
     ],
   }
-  
+
 ];
 
 const ExploreComponent = () => {
@@ -406,12 +406,53 @@ const ExploreComponent = () => {
 };
 
 
+
 const QuestionsComponent = () => {
   const navigation = useNavigation();
   const [selectedCategory, setSelectedCategory] = useState("Recommend");
   const [selectedAnswer, setSelectedAnswer] = useState(null);
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [questionsData, setQuestionsData] = useState([]);
+
+
+  useFocusEffect(
+    useCallback(() => {
+      const fetchQuestions = async () => {
+        try {
+          const response = await fetch('http://10.0.2.2:3000/getQuestions');
+          const data = await response.json();
+          setQuestionsData(data);
+        } catch (error) {
+          console.error('🔥 Error fetching questions:', error.message);
+        }
+      };
+  
+      fetchQuestions();
+    }, [])
+  );
+
+  const getEmojiFlag = (country) => {
+    const map = {
+      "USA": "🇺🇸",
+      "UK": "🇬🇧",
+      "China": "🇨🇳",
+      "Japan": "🇯🇵",
+      "Korea": "🇰🇷",
+      "South Korea": "🇰🇷",
+      "France": "🇫🇷",
+      "Germany": "🇩🇪",
+      "Italy": "🇮🇹",
+      "Spain": "🇪🇸",
+      "Malaysia": "🇲🇾",
+      "Indonesia": "🇮🇩",
+      // Add more as needed
+    };
+
+    return map[country?.trim()] || "🌍"; // default: globe
+  };
+
+
   return (
     <ScrollView style={styles.container}>
       {/* Search Bar */}
@@ -450,28 +491,21 @@ const QuestionsComponent = () => {
         <View key={item.id} style={styles.questionCard}>
           <View style={styles.cardHeader}>
             <View style={styles.profileContainer}>
-              <Image source={item.profileImage} style={styles.profileImageQuestion} />
-              <Image
-                source={
-                  item.tag === "China"
-                    ? require("../assets/flag/china.png")
-                    : item.tag === "Korean"
-                      ? require("../assets/flag/korea.png")
-                      : null
-                }
-                style={styles.flagIcon}
-              />
+              <Image source={{ uri: item.profile_image }} style={styles.profileImageQuestion} />
+              <Text style={styles.flagIcon}>{getEmojiFlag(item.country)}</Text>          
             </View>
             <View style={styles.textContainer}>
               <View style={styles.tagRow}>
-                <Text style={styles.user}>{item.user}   {item.priority && <Text style={styles.questionTag}>{item.vvip}</Text>}
+                {/* TODO VVIP From profile */}
+                <Text style={styles.user}>{item.name}   {item.priority && <Text style={styles.questionTag}>{item.vvip}</Text>}
                 </Text>
+                {/* TODO priority From ask questions*/}
                 {item.priority && <Text style={styles.priority}>{item.priority}</Text>}
               </View>
-              <Text style={styles.questionTitle}>{item.question}</Text>
+              <Text style={styles.questionTitle}>{item.title}</Text>
             </View>
           </View>
-          <Text style={styles.questionDetails}>{item.details}</Text>
+          <Text style={styles.questionDetails}>{item.description}</Text>
           <View style={styles.answerContainer}>
             <TouchableOpacity
               style={[styles.answerButton, selectedAnswer === item.id && styles.answerButtonActive]}
@@ -493,7 +527,7 @@ const QuestionsComponent = () => {
                       <Text style={styles.responseUser}>{response.user}   <Text style={styles.levelTag}>{response.level}</Text></Text>
                       <Text style={styles.responseTag}>{response.nationality}</Text>
                     </View>
-                    
+
                     <Text style={styles.timestamp}>{response.timestamp}</Text>
                   </View>
                   <Text style={styles.responseText}>{response.text}</Text>
@@ -502,9 +536,9 @@ const QuestionsComponent = () => {
                       <Image key={idx} source={img} style={styles.responseImage} />
                     ))}
                   </ScrollView>
-                  <View style={styles.responseFooter}>                    
+                  <View style={styles.responseFooter}>
                     <TouchableOpacity style={styles.translateButton}>
-                      <Image source={require("../assets/translate.png")} style={styles.translateButton} />  
+                      <Image source={require("../assets/translate.png")} style={styles.translateButton} />
                     </TouchableOpacity>
                     <FontAwesome5 name="thumbs-up" size={14} color="white" />
                     <Text style={styles.likesText}>{response.likes}</Text>
@@ -515,6 +549,8 @@ const QuestionsComponent = () => {
             </View>
           )}
         </View>
+
+
       ))}
     </ScrollView>
   );
@@ -849,7 +885,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginLeft: 5,
   },
-  translateButton:{
+  translateButton: {
     paddingTop: 5,
     paddingRight: 10,
     justifyContent: "flex-end",
@@ -942,7 +978,7 @@ const styles = StyleSheet.create({
     gap: 5, // Add space between elements
     padding: 5,
   },
-  
+
   likesText: {
     color: "white",
     fontSize: 12,
