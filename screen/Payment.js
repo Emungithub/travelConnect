@@ -1,16 +1,49 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Modal, Image } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Modal, Image, Alert } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 
-const PaymentScreen = () => {
+const PaymentScreen = ({ route }) => {
   const navigation = useNavigation();
   const [showPaymentModal, setShowPaymentModal] = useState(true);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const { questionData } = route.params || {};
 
-  const handlePayment = () => {
-    setShowPaymentModal(false);
-    setShowSuccessModal(true);
+  const handlePayment = async () => {
+    try {
+      // Always set priority to true when payment is successful
+      const postData = {
+        ...questionData,
+        priority: true // Ensure priority is set to true after payment
+      };
+
+      const response = await fetch('http://10.0.2.2:3000/addPost', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(postData),
+      });
+
+      const data = await response.json();
+      console.log('📩 Server Response:', data);
+
+      if (response.ok) {
+        setShowPaymentModal(false);
+        setShowSuccessModal(true);
+      } else {
+        Alert.alert(
+          'Error',
+          data.error || 'Failed to save question. Please try again.',
+          [{ text: 'OK', onPress: () => navigation.goBack() }]
+        );
+      }
+    } catch (error) {
+      console.error('❌ Network Error:', error);
+      Alert.alert(
+        'Error',
+        'Failed to connect to the server. Please check your internet connection and try again.',
+        [{ text: 'OK', onPress: () => navigation.goBack() }]
+      );
+    }
   };
 
   return (
@@ -43,29 +76,56 @@ const PaymentScreen = () => {
 
       {/* Payment Modal */}
       <Modal visible={showPaymentModal} animationType="slide" transparent={true}>
-        <View style={styles.paymentModalContainer}>
-          <View style={styles.paymentModalContent}>
-            <View style={styles.totalContainer}>
-              <Text style={styles.totalLabel}>Total</Text>
-              <Text style={styles.totalAmount}>RM 2.00</Text>
+        <View style={styles.modalContainer}>
+          <View style={[styles.modalContent, { borderColor: '#A64DFF' }]}>
+            <View style={[styles.priorityHeader, { backgroundColor: '#A64DFF' }]}>
+              <Text style={styles.modalTitle}>Payment</Text>
             </View>
-            <TouchableOpacity style={styles.payButton} onPress={handlePayment}>
-              <Text style={styles.payButtonText}>Pay</Text>
-            </TouchableOpacity>
+            <View style={styles.modalBody}>
+              <View style={styles.paymentDetails}>
+                <View style={styles.amountContainer}>
+                  <Text style={styles.amountLabel}>Total Amount</Text>
+                  <Text style={styles.amountValue}>RM 2.00</Text>
+                </View>
+                <View style={styles.divider} />
+                <View style={styles.paymentInfo}>
+                  <Text style={styles.paymentInfoText}>Priority Response Fee</Text>
+                  <Text style={styles.paymentInfoText}>This will ensure faster responses from locals</Text>
+                </View>
+              </View>
+              <TouchableOpacity 
+                style={[styles.payButton, { marginTop: 20 }]} 
+                onPress={handlePayment}
+              >
+                <Text style={styles.payButtonText}>Pay Now</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
 
-      {/* Payment Success Modal */}
-      <Modal visible={showSuccessModal} animationType="slide" transparent={true}>
-        <View style={styles.successModalContainer}>
-          <View style={styles.successModalContent}>
-            <Image source={require("../assets/travelConnectLogo.png")} style={styles.successIcon} />
-            <Text style={styles.successTitle}>Payment successful!</Text>
-            <Text style={styles.successMessage}>Your request will be responded to within 15 minutes.</Text>
-            <TouchableOpacity style={styles.confirmButton} onPress={() => setShowSuccessModal(false)}>
-              <Text style={styles.confirmButtonText}>Confirm</Text>
-            </TouchableOpacity>
+      {/* Success Modal */}
+      <Modal visible={showSuccessModal} animationType="fade" transparent={true}>
+        <View style={styles.modalContainer}>
+          <View style={[styles.modalContent, { borderColor: '#4CAF50' }]}>
+            <View style={[styles.priorityHeader, { backgroundColor: '#4CAF50' }]}>
+              <Text style={styles.modalTitle}>Success!</Text>
+            </View>
+            <View style={styles.modalBody}>
+              <View style={styles.successIconContainer}>
+                <FontAwesome5 name="check-circle" size={60} color="#4CAF50" />
+              </View>
+              <Text style={styles.modalDescription}>Payment successful! Your question will be prioritized.</Text>
+              <TouchableOpacity 
+                style={[styles.payButton, { marginTop: 20 }]} 
+                onPress={() => {
+                  setShowSuccessModal(false);
+                  navigation.navigate('Explore');
+                }}
+              >
+                <Text style={styles.payButtonText}>Continue</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -179,6 +239,87 @@ const styles = StyleSheet.create({
   confirmButtonText: {
     color: "white",
     fontSize: 16,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+  },
+  modalContent: {
+    backgroundColor: "#222",
+    borderRadius: 10,
+    width: "90%",
+    borderWidth: 2,
+    overflow: 'hidden',
+  },
+  priorityHeader: {
+    padding: 20,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+  },
+  modalBody: {
+    padding: 20,
+  },
+  modalTitle: {
+    color: "white",
+    fontSize: 22,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  paymentDetails: {
+    backgroundColor: "#1a1a1a",
+    borderRadius: 10,
+    padding: 15,
+  },
+  amountContainer: {
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  amountLabel: {
+    color: "#bbb",
+    fontSize: 16,
+    marginBottom: 5,
+  },
+  amountValue: {
+    color: "white",
+    fontSize: 28,
+    fontWeight: "bold",
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "#333",
+    marginVertical: 15,
+  },
+  paymentInfo: {
+    alignItems: 'center',
+  },
+  paymentInfoText: {
+    color: "#bbb",
+    fontSize: 14,
+    textAlign: "center",
+    marginBottom: 5,
+  },
+  payButton: {
+    backgroundColor: "#A64DFF",
+    paddingVertical: 15,
+    borderRadius: 30,
+    alignItems: "center",
+  },
+  payButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  successIconContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalDescription: {
+    color: "white",
+    fontSize: 16,
+    textAlign: "center",
+    marginBottom: 20,
   },
 });
 

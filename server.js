@@ -117,6 +117,39 @@ function authenticateToken(req, res, next) {
 // ==============================
 // Add Post Endpoint
 // ==============================
+app.post('/addQuestion', (req, res) => {
+    const { user_id, title, description, priority } = req.body;
+
+    if (!user_id || !title || !description) {
+        return res.status(400).json({ error: 'User ID, title, and description are required.' });
+    }
+
+    // Log incoming data for debugging
+    console.log('📥 Incoming Question Data:', { user_id, title, description, priority });
+
+    const insertPostSQL = `
+        INSERT INTO posts (title, description, user_id, priority)
+        VALUES (?, ?, ?, ?)
+    `;
+
+    db.query(insertPostSQL, [title, description, user_id, priority || false], (err, result) => {
+        if (err) {
+            console.error('❌ Database Error:', err);
+            return res.status(500).json({ 
+                error: 'Failed to save post.',
+                details: err.message 
+            });
+        }
+
+        console.log('✅ Post saved successfully:', result);
+        res.status(201).json({ 
+            message: 'Post added successfully!', 
+            postId: result.insertId 
+        });
+    });
+});
+
+
 app.post('/addPost', (req, res) => {
     const { user_id, title, description } = req.body;
 

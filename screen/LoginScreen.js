@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Alert } from 'react-native';
@@ -13,6 +13,20 @@ export default function LoginScreen({ }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLogin, setIsLogin] = useState(true); // State to toggle between login and register
+
+  // Check for stored user ID on component mount
+
+  //TODO: Add recommendations screen, log out server.js
+  //useEffect to navigate to explorescreen if user is logged in
+  useEffect(() => {
+    const checkUserLogin = async () => {
+      const userId = await AsyncStorage.getItem('userId');
+      if (userId) {
+        navigation.navigate('Explore'); // Navigate to ExploreScreen if user is logged in
+      }
+    };
+    checkUserLogin();
+  }, [navigation]);
 
   const handleRegister = async () => {
     console.log("Attempting to Register...");

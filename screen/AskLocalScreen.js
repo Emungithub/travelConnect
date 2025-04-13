@@ -22,7 +22,7 @@ import { useEffect } from "react";
 import { GOOGLE_PLACES_API_KEY } from "@env";
 import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import axios from 'axios';
 
 
 const AskLocalScreen = ({ navigation }) => {
@@ -41,33 +41,9 @@ const AskLocalScreen = ({ navigation }) => {
   const screenTitle = route.params?.title || "Ask Local";
   const screenButton = route.params?.button || "Ask";
 
-  const similarQuestions = [
-    {
-      id: 1,
-      title: "Vegetarian food options near Setapak after 10 PM",
-      answer: [
-        "Hi, my favourite to-go vegetarian food opens till 11pm. It’s called Mamakim...",
-        "There is a vegetarian restaurant near Bukit Bintang and it closes at 10pm. It’s ...",
-        "There is a vegetarian restaurant near Bukit Bintang and it closes at 10pm. It’s ...",
-      ],
-    },
-    {
-      id: 2,
-      title: "Recommendation for pet-friendly vegetarian food in Kuala Lumpur area",
-      answer: [
-        "Hi, my favourite to-go vegetarian food opens till 11pm. It’s called Mamakim...",
-        "There is a vegetarian restaurant near Bukit Bintang and it closes at 10pm. It’s ...",
-      ],
-    },
-    {
-      id: 3,
-      title: "Late-night vegetarian-friendly restaurants in KL",
-      answer: [
-        "Hi, my favourite to-go vegetarian food opens till 11pm. It’s called Mamakim...",
-        "There is a vegetarian restaurant near Bukit Bintang and it closes at 10pm. It’s ...",
-      ],
-    },
-  ];
+  const openAiApiKey = process.env.OPENAI_API_KEY;
+
+
 
   // Simulated function to determine priority level
   const determinePriority = () => {
@@ -146,20 +122,149 @@ const AskLocalScreen = ({ navigation }) => {
   }, []);
 
 
+  const highPriorityKeywords = [
+    "urgent", "urgently", "immediately", "asap", "emergency", "critical", "now", "right now",
+    "quick", "fast", "important", "serious", "danger", "help", "assistance", "hospital",
+    "accident", "injury", "life-threatening", "dangerous", "emergency", "911"
+  ];
+  
+  const mediumPriorityKeywords = [
+    "soon", "need help", "assistance", "guidance", "tomorrow", "this week", "moderate", 
+    "important", "concern", "worry", "issue", "problem", "trouble"
+  ];
+  
+  const analyzePriorityLevel = async (title, description) => {
+    // Combine title and description for keyword checking
+    const combinedText = `${title} ${description}`.toLowerCase();
+    
+    // First check for high priority keywords
+    for (const keyword of highPriorityKeywords) {
+      if (combinedText.includes(keyword.toLowerCase())) {
+        return "High";
+      }
+    }
+    
+    // Then check for medium priority keywords
+    for (const keyword of mediumPriorityKeywords) {
+      if (combinedText.includes(keyword.toLowerCase())) {
+        return "Medium";
+      }
+    }
+    
+    // If no keywords found, use OpenAI analysis
+    try {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: "gpt-3.5-turbo",
+          messages: [
+            {
+              role: "system",
+              content: "You are a helpful assistant that analyzes questions and determines their priority level. Respond with only one word: 'Low', 'Medium', or 'High'."
+            },
+            {
+              role: "user",
+              content: `Analyze this question and determine its priority level (Low, Medium, or High):\n\nTitle: ${title}\n\nDescription: ${description}`
+            }
+          ],
+          temperature: 0.3,
+          max_tokens: 10,
+        }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        const priority = data.choices[0].message.content.trim();
+        return priority;
+      } else {
+        console.error("API Error:", data);
+        return "Medium"; // Default to Medium if API call fails
+      }
+    } catch (error) {
+      console.error("Error analyzing priority:", error);
+      return "Medium"; // Default to Medium if there's an error
+    }
+  };
+  
+  
   const handleSubmit = async () => {
-    const postData = {
+    if (!title || !description) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    // For regular response (no payment)
+    const savePost = async (isPriority = false) => {
+      try {
+        const response = await fetch('http://10.0.2.2:3000/addPost', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            title,
+            description,
+            user_id: userId,
+            priority: isPriority
+          }),
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          setShowSuccessModal(true);
+        } else {
+          Alert.alert('Error', data.error || 'Failed to save post');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        Alert.alert('Error', 'Failed to connect to server');
+      }
+    };
+
+    // Check priority level and show modal
+    const priorityLevel = await analyzePriorityLevel(title, description);
+    setPriorityLevel(priorityLevel);
+    setShowPriorityModal(true);
+
+    // Handle user's choice in the modal
+    setPriorityOptionSelected((choice) => {
+      if (choice === 'regular') {
+        // Save as regular post (priority = false)
+        savePost(false);
+      } else if (choice === 'priority') {
+        // Navigate to payment screen for priority post
+        navigation.navigate('Payment', {
+          questionData: {
+            title,
+            description,
+            user_id: userId,
+            priority: true
+          }
+        });
+      }
+    });
+  };
+  
+
+/*
+  const handleSubmit = async () => {
+    const questionData = {
       user_id: userId,
       title,
       description
     };
   
-    console.log('📤 Data Sent to Server:', postData);
-  
+    console.log('📤 Data Sent to Server:', questionData);
+
     try {
-      const response = await fetch('http://10.0.2.2:3000/addPost', {
+      const response = await fetch('http://10.0.2.2:3000/addQuestion', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(postData)
+        body: JSON.stringify(questionData)
       });
   
       const contentType = response.headers.get('content-type');
@@ -188,7 +293,20 @@ const AskLocalScreen = ({ navigation }) => {
     }
   };
   
+*/
 
+  const getPriorityColor = (priority) => {
+    switch (priority) {
+      case 'High':
+        return '#F44336'; // Red
+      case 'Medium':
+        return '#FF9800'; // Orange
+      case 'Low':
+        return '#4CAF50'; // Green
+      default:
+        return '#FF9800'; // Default to Orange
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -354,80 +472,101 @@ const AskLocalScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      {/* Similar Question Modal */}
-      <Modal visible={showSimilarQuestions} animationType="slide" transparent={true}>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <View style={styles.questionContainer}>
-              <View style={styles.centerIcon}>
-                <Text style={styles.centerIconText}>Q</Text>
-              </View>
-              <Text style={styles.modalTitle}>Similar Questions found!</Text>
-            </View>
-            <ScrollView style={styles.listContainer}>
-              {similarQuestions.map((item) => (
-                <View key={item.id}>
-                  <TouchableOpacity style={styles.questionItem} onPress={() => setSelectedQuestion(item)}>
-                    <Text style={styles.questionText}>{item.title}</Text>
-                  </TouchableOpacity>
-                  {selectedQuestion?.id === item.id && selectedQuestion.answer && (
-                    <View style={styles.answerContainer}>
-                      <View style={styles.questionContainer}>
-                        <View style={styles.centerIcon}>
-                          <Text style={styles.centerIconText}>A</Text>
-                        </View>
-                        <Text style={styles.answerTitle}>{selectedQuestion.title}</Text>
-                      </View>
-                      {selectedQuestion.answer.map((ans, index) => (
-                        <Text key={index} style={styles.answerText}>{ans}</Text>
-                      ))}
-                    </View>
-                  )}
-                </View>
-              ))}
-            </ScrollView>
-            <TouchableOpacity style={styles.postButton} onPress={() => {
-              setShowSimilarQuestions(false);
-              setPriorityLevel(determinePriority());
-              setShowPriorityModal(true);
-            }}>
-              <Text style={styles.postButtonText}>Continue</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
       {/* Priority Modal */}
       <Modal visible={showPriorityModal} animationType="slide" transparent={true}>
         <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Priority detected: {priorityLevel}</Text>
-            <Text style={styles.modalDescription}>Would you like to add a priority fee for faster response?</Text>
-            <TouchableOpacity style={styles.priorityOption} onPress={() => navigation.navigate("Payment")}>
-              <Text style={styles.priorityText}>Priority</Text>
-              <Text style={styles.priorityFee}>RM 2.00</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.priorityOption} onPress={() => {
-              setShowPriorityModal(false);
-              setShowSuccessModal(true);
-            }}>
-              <Text style={styles.priorityText}>Regular</Text>
-              <Text style={styles.priorityFee}>Free</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.postButton} onPress={() => setShowPriorityModal(false)}>
-              <Text style={styles.postButtonText}>Next</Text>
-            </TouchableOpacity>
+          <View style={[styles.modalContent, { borderColor: getPriorityColor(priorityLevel) }]}>
+            <View style={[styles.priorityHeader, { backgroundColor: getPriorityColor(priorityLevel) }]}>
+              <Text style={styles.modalTitle}>{priorityLevel} Priority</Text>
+            </View>
+            <View style={styles.modalBody}>
+              <Text style={styles.modalDescription}>Would you like to add a priority fee for faster response?</Text>
+              <View style={styles.optionsContainer}>
+                <TouchableOpacity 
+                  style={[styles.priorityOption, { marginBottom: 15 }]} 
+                  onPress={() => {
+                    setShowPriorityModal(false);
+                    navigation.navigate("Payment", { 
+                      questionData: {
+                        user_id: userId,
+                        title,
+                        description,
+                        priority: true // Set priority to true when user chooses to pay
+                      }
+                    });
+                  }}
+                >
+                  <View style={styles.optionContent}>
+                    <Text style={styles.priorityText}>Priority Response</Text>
+                    <Text style={styles.priorityFee}>RM 2.00</Text>
+                  </View>
+                  <Text style={styles.optionSubtext}>Get faster responses from locals</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.priorityOption}
+                  onPress={async () => {
+                    setShowPriorityModal(false);
+                    const questionData = {
+                      user_id: userId,
+                      title,
+                      description,
+                      priority: false // Set priority to false for regular response
+                    };
+
+                    try {
+                      const response = await fetch('http://10.0.2.2:3000/addQuestion', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(questionData),
+                      });
+
+                      const data = await response.json();
+                      console.log('📩 Server Response:', data);
+
+                      if (response.ok) {
+                        setShowSuccessModal(true);
+                      } else {
+                        Alert.alert('Error', data.error || 'Unknown error occurred.');
+                      }
+                    } catch (err) {
+                      console.error('❌ Network Error:', err);
+                      Alert.alert('Error', 'Failed to connect to the server.');
+                    }
+                  }}
+                >
+                  <View style={styles.optionContent}>
+                    <Text style={styles.priorityText}>Regular Response</Text>
+                    <Text style={styles.priorityFee}>Free</Text>
+                  </View>
+                  <Text style={styles.optionSubtext}>Standard response time</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
         </View>
       </Modal>
       {/* Success Modal */}
       <Modal visible={showSuccessModal} animationType="fade" transparent={true}>
         <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Posted Question Successfully!</Text>
-            <TouchableOpacity style={styles.postButton} onPress={() => setShowSuccessModal(false)}>
-              <Text style={styles.postButtonText}>OK</Text>
-            </TouchableOpacity>
+          <View style={[styles.modalContent, { borderColor: '#4CAF50' }]}>
+            <View style={[styles.priorityHeader, { backgroundColor: '#4CAF50' }]}>
+              <Text style={styles.modalTitle}>Success!</Text>
+            </View>
+            <View style={styles.modalBody}>
+              <View style={styles.successIconContainer}>
+                <FontAwesome5 name="check-circle" size={60} color="#4CAF50" />
+              </View>
+              <Text style={styles.modalDescription}>Your question has been posted successfully!</Text>
+              <TouchableOpacity 
+                style={[styles.postButton, { marginTop: 20 }]} 
+                onPress={() => {
+                  setShowSuccessModal(false);
+                  navigation.navigate('Explore');
+                }}
+              >
+                <Text style={styles.postButtonText}>Continue</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -598,126 +737,59 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.7)",
   },
   modalContent: {
-    padding: 20,
+    backgroundColor: "#222",
+    padding: 0,
     borderRadius: 10,
     width: "90%",
+    borderWidth: 2,
+  },
+  priorityHeader: {
+    padding: 20,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+  },
+  modalBody: {
+    padding: 20,
   },
   modalTitle: {
     color: "white",
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: "bold",
-    marginBottom: 10,
-  },
-
-  questionContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  centerIcon: {
-    width: 45,
-    height: 45,
-    backgroundColor: "#A64DFF",
-    borderRadius: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 10,
-  },
-  centerIconText: {
-    color: "white",
-    fontSize: 30,
-    fontWeight: "bold",
-  },
-  questionItem: {
-    backgroundColor: "#1a1a1a",
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 10,
-    borderWidth: 2,
-    borderColor: "#8A2BE2",
-  },
-  questionText: {
-    color: "#fff",
-    fontSize: 14,
-  },
-  answerContainer: {
-    backgroundColor: "#4B0082",
-    padding: 12,
-    borderRadius: 10,
-    marginTop: 5,
-    borderWidth: 2,
-    borderColor: "#8A2BE2",
-    marginBottom: 10,
-  },
-  answerTitle: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  answerText: {
-    color: "white",
-    fontSize: 14,
-    marginBottom: 5,
-    borderWidth: 2,
-    borderColor: "#8A2BE2",
-    paddingVertical: 5,
-    paddingHorizontal: 15,
-    borderRadius: 10,
+    textAlign: "center",
   },
   modalDescription: {
     color: "#bbb",
-    fontSize: 14,
-    marginBottom: 10,
+    fontSize: 16,
+    marginBottom: 25,
+    textAlign: "center",
+    lineHeight: 22,
   },
   priorityOption: {
-    padding: 12,
+    backgroundColor: "#1a1a1a",
+    padding: 15,
     borderRadius: 10,
+    width: "100%",
+  },
+  optionContent: {
     flexDirection: "row",
     justifyContent: "space-between",
-    width: "100%",
-    marginBottom: 10,
-    borderWidth: 2,
-    borderColor: "#A64DFF",
+    alignItems: "center",
+    marginBottom: 5,
   },
   priorityText: {
     color: "white",
     fontSize: 16,
+    fontWeight: "500",
   },
   priorityFee: {
     color: "white",
     fontSize: 16,
     fontWeight: "bold",
-  }, locationPrivacyContainer: {
-    paddingTop: 10,
-    marginTop: 10,
   },
-  locationButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  locationText: {
-    color: "#8A2BE2",
+  optionSubtext: {
+    color: "#888",
     fontSize: 14,
-    marginLeft: 5,
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
-  },
-  modalContent: {
-    backgroundColor: "#222",
-    padding: 20,
-    borderRadius: 10,
-    width: "90%",
-  },
-  modalTitle: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 10,
+    marginTop: 5,
   },
   searchInput: {
     backgroundColor: "#1a1a1a",
@@ -736,6 +808,17 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
+  },
+  successIconContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalDescription: {
+    color: "#bbb",
+    fontSize: 16,
+    marginBottom: 25,
+    textAlign: "center",
+    lineHeight: 22,
   },
 
 });

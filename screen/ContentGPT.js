@@ -32,7 +32,7 @@ const ContentGPT = ({ navigation }) => {
                     "Authorization": `Bearer ${OPENAI_API_KEY}`,
                 },
                 body: JSON.stringify({
-                    model: "gpt-4",
+                    model: "gpt-4-0125-preview",
                     messages: [{ role: "user", content: inputText }],
                     max_tokens: 100,
                 }),
