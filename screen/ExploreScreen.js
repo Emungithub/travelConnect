@@ -418,6 +418,7 @@ const QuestionsComponent = () => {
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [questionsData, setQuestionsData] = useState([]);
+  const [expandedDescriptions, setExpandedDescriptions] = useState({});
 
   // Filter questions data based on search query
   const filteredQuestionsData = questionsData.filter(item => {
@@ -428,15 +429,23 @@ const QuestionsComponent = () => {
     );
   });
 
+  const toggleDescription = (id) => {
+    setExpandedDescriptions(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
+
   useFocusEffect(
     useCallback(() => {
       const fetchQuestions = async () => {
         try {
           const response = await fetch('http://172.30.1.98:3000/getQuestions');
           const data = await response.json();
+          console.log("Fetched questions data:", JSON.stringify(data, null, 2));
           setQuestionsData(data);
         } catch (error) {
-          console.error('🔥 Error fetching questions:', error.message);
+          console.error('Error fetching questions:', error);
         }
       };
   
@@ -499,71 +508,55 @@ const QuestionsComponent = () => {
       </View>
 
       {/* List of Questions */}
-      {filteredQuestionsData.map((item) => (
-        <View key={item.id} style={styles.questionCard}>
-          <View style={styles.cardHeader}>
-            <View style={styles.profileContainer}>
-              <Image source={{ uri: item.profile_image }} style={styles.profileImageQuestion} />
-              <Text style={styles.flagIcon}>{getEmojiFlag(item.country)}</Text>          
-            </View>
-            <View style={styles.textContainer}>
-              <View style={styles.tagRow}>
-                <Text style={styles.user}>{item.name}   {item.priority && <Text style={styles.questionTag}>{item.vvip}</Text>}</Text>
-                {item.priority && <Text style={styles.priority}>{item.priority}</Text>}
+      {filteredQuestionsData.map((item) => {
+        console.log("Rendering question with priority:", item.priority);
+        return (
+          <View key={item.id} style={styles.questionCard}>
+            <View style={styles.cardHeader}>
+              <View style={styles.profileContainer}>
+                <Image source={{ uri: item.profile_image }} style={styles.profileImageQuestion} />
+                <Text style={styles.flagIcon}>{getEmojiFlag(item.country)}</Text>          
               </View>
-              <Text style={styles.questionTitle}>{item.title}</Text>
-            </View>
-          </View>
-          <Text 
-            style={styles.questionDetails} 
-            numberOfLines={2}
-            ellipsizeMode="tail"
-          >
-            {item.description}
-          </Text>
-          <View style={styles.answerContainer}>
-            <TouchableOpacity
-              style={[styles.answerButton, selectedAnswer === item.id && styles.answerButtonActive]}
-              onPress={() => setSelectedAnswer(selectedAnswer === item.id ? null : item.id)}
-            >
-              <FontAwesome5 name="comment" size={14} color="#bbb" />
-              <Text style={styles.answers}>Answer {item.answers}</Text>
-            </TouchableOpacity>
-          </View>
-          {/* Display answers when the button is clicked */}
-          {selectedAnswer === item.id && item.responses.length > 0 && (
-            <View style={styles.responseContainer}>
-              <Text style={styles.commentsHeader}>Comments ({item.responses.length})</Text>
-              {item.responses.map((response) => (
-                <View key={response.id} style={styles.responseCard}>
-                  <View style={styles.responseHeader}>
-                    <Image source={response.profileImage} style={styles.profileImageResponse} />
-                    <View style={styles.textContainer}>
-                      <Text style={styles.responseUser}>{response.user}   <Text style={styles.levelTag}>{response.level}</Text></Text>
-                      <Text style={styles.responseTag}>{response.nationality}</Text>
+              <View style={styles.textContainer}>
+                <View style={styles.tagRow}>
+                  <Text style={styles.user}>{item.name}</Text>
+                  {item.priority && (
+                    <View style={[
+                      styles.priorityBadge, 
+                      { backgroundColor: item.priority === "High" ? "#FF4500" : 
+                                      item.priority === "Medium" ? "#FFA500" : "#32CD32" }
+                    ]}>
+                      <Text style={styles.priorityText}>{item.priority}</Text>
                     </View>
-                    <Text style={styles.timestamp}>{response.timestamp}</Text>
-                  </View>
-                  <Text style={styles.responseText}>{response.text}</Text>
-                  <ScrollView horizontal>
-                    {response.images.map((img, idx) => (
-                      <Image key={idx} source={img} style={styles.responseImage} />
-                    ))}
-                  </ScrollView>
-                  <View style={styles.responseFooter}>
-                    <TouchableOpacity style={styles.translateButton}>
-                      <Image source={require("../assets/translate.png")} style={styles.translateButton} />
-                    </TouchableOpacity>
-                    <FontAwesome5 name="thumbs-up" size={14} color="white" />
-                    <Text style={styles.likesText}>{response.likes}</Text>
-                    <Text style={styles.suggestText}>{response.suggests}</Text>
-                  </View>
+                  )}
                 </View>
-              ))}
+                <Text style={styles.questionTitle}>{item.title}</Text>
+              </View>
             </View>
-          )}
-        </View>
-      ))}
+            <TouchableOpacity onPress={() => toggleDescription(item.id)}>
+              <Text 
+                style={styles.questionDetails} 
+                numberOfLines={expandedDescriptions[item.id] ? undefined : 2}
+                ellipsizeMode="tail"
+              >
+                {item.description}
+              </Text>
+              {!expandedDescriptions[item.id] && (
+                <Text style={styles.readMore}>... Read more</Text>
+              )}
+            </TouchableOpacity>
+            <View style={styles.answerContainer}>
+              <TouchableOpacity
+                style={[styles.answerButton, selectedAnswer === item.id && styles.answerButtonActive]}
+                onPress={() => setSelectedAnswer(selectedAnswer === item.id ? null : item.id)}
+              >
+                <FontAwesome5 name="comment" size={14} color="#bbb" />
+                <Text style={styles.answers}>Answer {item.answers}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        );
+      })}
     </ScrollView>
   );
 };
@@ -848,6 +841,7 @@ const styles = StyleSheet.create({
   tagRow: {
     flexDirection: "row",
     alignItems: "center",
+    marginBottom: 4,
   },
   questionTag: {
     color: "#8A2BE2",
@@ -1000,6 +994,24 @@ const styles = StyleSheet.create({
     color: "#A64DFF",
     fontSize: 12,
     marginLeft: 10,
+  },
+  priorityBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginLeft: 8,
+    minWidth: 60,
+    alignItems: "center",
+  },
+  priorityText: {
+    color: "white",
+    fontSize: 12,
+    fontWeight: "bold",
+  },
+  readMore: {
+    color: "#8A2BE2",
+    fontSize: 14,
+    marginTop: 4,
   },
 
 });

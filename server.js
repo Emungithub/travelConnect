@@ -212,7 +212,7 @@ app.get('/getPosts', (req, res) => {
 
 app.get('/getQuestions', (req, res) => {
     const sql = `
-      SELECT p.id, p.title, p.description, u.name, u.profile_image, u.country
+      SELECT p.id, p.title, p.description, p.priority, u.name, u.profile_image, u.country
       FROM posts p
       JOIN users u ON p.user_id = u.id
       ORDER BY p.created_at DESC
@@ -224,8 +224,8 @@ app.get('/getQuestions', (req, res) => {
         return res.status(500).json({ error: "Failed to fetch questions." });
       }
   
-      console.log("✅ Questions fetched:", results);
-      res.json(results); // ✅ should return JSON
+      console.log("✅ Questions fetched with priority:", JSON.stringify(results, null, 2));
+      res.json(results);
     });
   });
   
