@@ -443,6 +443,12 @@ If there's any mention of immediate need or current location, prioritize that ov
         <View style={styles.modalContainer}>
           <View style={[styles.modalContent, { borderColor: getPriorityColor(priorityLevel) }]}>
             <View style={[styles.priorityHeader, { backgroundColor: getPriorityColor(priorityLevel) }]}>
+              <TouchableOpacity 
+                style={styles.closeButton}
+                onPress={() => setShowPriorityModal(false)}
+              >
+                <FontAwesome5 name="times" size={20} color="white" />
+              </TouchableOpacity>
               <Text style={styles.modalTitle}>{priorityLevel} Priority</Text>
             </View>
             <View style={styles.modalBody}>
@@ -481,6 +487,12 @@ If there's any mention of immediate need or current location, prioritize that ov
         <View style={styles.modalContainer}>
           <View style={[styles.modalContent, { borderColor: '#4CAF50' }]}>
             <View style={[styles.priorityHeader, { backgroundColor: '#4CAF50' }]}>
+              <TouchableOpacity 
+                style={styles.closeButton}
+                onPress={() => setShowSuccessModal(false)}
+              >
+                <FontAwesome5 name="times" size={20} color="white" />
+              </TouchableOpacity>
               <Text style={styles.modalTitle}>Success!</Text>
             </View>
             <View style={styles.modalBody}>
@@ -682,6 +694,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
+    position: 'relative',  // Added for absolute positioning of close button
   },
   modalBody: {
     padding: 20,
@@ -748,14 +761,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
-  modalDescription: {
-    color: "#bbb",
-    fontSize: 16,
-    marginBottom: 25,
-    textAlign: "center",
-    lineHeight: 22,
+  closeButton: {
+    position: 'absolute',
+    right: 15,
+    top: 15,
+    zIndex: 1,
   },
-
 });
 
 export default AskLocalScreen;

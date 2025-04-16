@@ -89,6 +89,15 @@ const PaymentScreen = ({ route }) => {
         <View style={styles.modalContainer}>
           <View style={[styles.modalContent, { borderColor: '#A64DFF' }]}>
             <View style={[styles.priorityHeader, { backgroundColor: '#A64DFF' }]}>
+              <TouchableOpacity 
+                style={styles.closeButton}
+                onPress={() => {
+                  setShowPaymentModal(false);
+                  navigation.goBack();
+                }}
+              >
+                <FontAwesome5 name="times" size={20} color="white" />
+              </TouchableOpacity>
               <Text style={styles.modalTitle}>Payment</Text>
             </View>
             <View style={styles.modalBody}>
@@ -119,6 +128,15 @@ const PaymentScreen = ({ route }) => {
         <View style={styles.modalContainer}>
           <View style={[styles.modalContent, { borderColor: '#4CAF50' }]}>
             <View style={[styles.priorityHeader, { backgroundColor: '#4CAF50' }]}>
+              <TouchableOpacity 
+                style={styles.closeButton}
+                onPress={() => {
+                  setShowSuccessModal(false);
+                  navigation.navigate('Explore');
+                }}
+              >
+                <FontAwesome5 name="times" size={20} color="white" />
+              </TouchableOpacity>
               <Text style={styles.modalTitle}>Success!</Text>
             </View>
             <View style={styles.modalBody}>
@@ -267,6 +285,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
+    position: 'relative',
   },
   modalBody: {
     padding: 20,
@@ -330,6 +349,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "center",
     marginBottom: 20,
+  },
+  closeButton: {
+    position: 'absolute',
+    right: 15,
+    top: 15,
+    zIndex: 1,
   },
 });
 
