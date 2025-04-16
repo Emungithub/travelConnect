@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -18,17 +18,20 @@ import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplet
 import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
 import { KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
-import { useEffect } from "react";
 import { GOOGLE_PLACES_API_KEY } from "@env";
 import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
 
-const AskLocalScreen = ({ navigation }) => {
+const AskLocalScreen = ({ navigation, route }) => {
+  // Add this at the top of the component, before any hooks
+  console.log("AskLocalScreen rendered with route params:", route.params);
+
+  // All state hooks at the top level
   const [userId, setUserId] = useState("");
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const [title, setTitle] = useState(route.params?.title || "");
+  const [description, setDescription] = useState(route.params?.description || "");
   const [images, setImages] = useState([]);
   const [showSimilarQuestions, setShowSimilarQuestions] = useState(false);
   const [showPriorityModal, setShowPriorityModal] = useState(false);
@@ -36,83 +39,19 @@ const AskLocalScreen = ({ navigation }) => {
   const [showMapModal, setShowMapModal] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [selectedQuestion, setSelectedQuestion] = useState(null);
-  const [priorityLevel, setPriorityLevel] = useState("Low");
-  const route = useRoute();
-  const screenTitle = route.params?.title || "Ask Local";
-  const screenButton = route.params?.button || "Ask";
+  const [priorityLevel, setPriorityLevel] = useState("Medium");
+  const [buttonText, setButtonText] = useState(route.params?.button || "Ask");
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedOption, setSelectedOption] = useState(null);
 
   const openAiApiKey = process.env.OPENAI_API_KEY;
 
-
-
-  // Simulated function to determine priority level
-  const determinePriority = () => {
-    if (title.length > 20 || description.length > 100) {
-      return "High";
-    } else if (title.length > 10 || description.length > 50) {
-      return "Medium";
-    } else {
-      return "Low";
-    }
-  };
-
-  // Function to pick an image
-  const pickImage = async () => {
-    if (images.length >= 9) {
-      alert("You can only upload up to 9 images.");
-      return;
-    }
-
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== "granted") {
-      alert("Permission to access the gallery is required!");
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      setImages([...images, result.assets[0].uri]); // Add selected image
-    }
-  };
-
-  // Function to remove an image
-  const removeImage = (index) => {
-    const updatedImages = images.filter((_, i) => i !== index);
-    setImages(updatedImages);
-  };
-
-  // Function to handle location selection
-  const handleLocationSelect = (details) => {
-    const { name, vicinity, geometry } = details;
-    setSelectedLocation({
-      name,
-      address: vicinity,
-      latitude: geometry.location.lat,
-      longitude: geometry.location.lng,
-    });
-    setShowMapModal(false); // Close the modal after selection
-  };
-
-  useEffect(() => {
-    fetch(`https://maps.googleapis.com/maps/api/place/textsearch/json?query=starbucks&key=${process.env.GOOGLE_PLACES_API_KEY}`)
-      .then(response => response.json())
-      .then(data => console.log('API Response:', data))
-      .catch(error => console.error('Error:', error));
-  }, []);
-
-  //here fetch user id
+  // All effect hooks together
   useEffect(() => {
     const getUserId = async () => {
       const id = await AsyncStorage.getItem("userId");
-
       if (id) {
-        setUserId(Number(id));  // ✅ Convert to number
+        setUserId(Number(id));
         console.log("📦 Retrieved userId:", id);
       } else {
         console.warn("⚠️ No userId found in AsyncStorage!");
@@ -121,38 +60,47 @@ const AskLocalScreen = ({ navigation }) => {
     getUserId();
   }, []);
 
+  useEffect(() => {
+    fetch(`https://maps.googleapis.com/maps/api/place/textsearch/json?query=starbucks&key=${process.env.GOOGLE_PLACES_API_KEY}`)
+      .then(response => response.json())
+      .then(data => console.log('API Response:', data))
+      .catch(error => console.error('Error:', error));
+  }, []);
 
+  useEffect(() => {
+    console.log("Route params changed:", route.params);
+    if (route.params?.title) {
+      console.log("Setting title:", route.params.title);
+      setTitle(route.params.title);
+    }
+    if (route.params?.description) {
+      console.log("Setting description:", route.params.description);
+      setDescription(route.params.description);
+    }
+    if (route.params?.button) {
+      console.log("Setting button text:", route.params.button);
+      setButtonText(route.params.button);
+    }
+  }, [route.params]);
+
+  // Priority keywords for different levels
   const highPriorityKeywords = [
-    "urgent", "urgently", "immediately", "asap", "emergency", "critical", "now", "right now",
+    "urgent", "urgently", "immediately", "emergency", "critical", "now", "right now", 
     "quick", "fast", "important", "serious", "danger", "help", "assistance", "hospital",
     "accident", "injury", "life-threatening", "dangerous", "emergency", "911"
   ];
   
   const mediumPriorityKeywords = [
     "soon", "need help", "assistance", "guidance", "tomorrow", "this week", "moderate", 
-    "important", "concern", "worry", "issue", "problem", "trouble"
+     "concern", "worry", "issue", "problem", "trouble"
   ];
   
   const analyzePriorityLevel = async (title, description) => {
-    // Combine title and description for keyword checking
+    // Combine title and description for analysis
     const combinedText = `${title} ${description}`.toLowerCase();
     
-    // First check for high priority keywords
-    for (const keyword of highPriorityKeywords) {
-      if (combinedText.includes(keyword.toLowerCase())) {
-        return "High";
-      }
-    }
-    
-    // Then check for medium priority keywords
-    for (const keyword of mediumPriorityKeywords) {
-      if (combinedText.includes(keyword.toLowerCase())) {
-        return "Medium";
-      }
-    }
-    
-    // If no keywords found, use OpenAI analysis
     try {
+      console.log("Sending to OpenAI for analysis:", combinedText);
       const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -164,29 +112,75 @@ const AskLocalScreen = ({ navigation }) => {
           messages: [
             {
               role: "system",
-              content: "You are a helpful assistant that analyzes questions and determines their priority level. Respond with only one word: 'Low', 'Medium', or 'High'."
+              content: `You are a priority analyzer for a travel and local recommendation app. Your task is to categorize questions into High, Medium, or Low priority based on their urgency and timing. Be very strict with these categories:
+
+High Priority (Respond with "High"):
+- Contains words indicating immediate need: "now", "asap", "right now", "real quick", "urgent", "immediately"
+- Current location-based requests needing quick response
+- Time-sensitive requests for the same day
+- Emergency or urgent situations
+Example questions that should be High:
+- "I need some recommendation for chinese food in setapak area real quick"
+- "Looking for a cafe that's open right now in KL"
+- "Need urgent help finding halal food nearby"
+- "Where can I find a restaurant that's open now?"
+
+Medium Priority (Respond with "Medium"):
+- Future plans with specific dates/timeframes
+- Questions about upcoming trips
+- Preparation-related queries with clear timing
+- Contains timing words like: "next week", "tomorrow", "coming days", "planning to"
+Example questions that should be Medium:
+- "What to do in Malaysia, I'm going there next week"
+- "Planning my trip to KL next month, need recommendations"
+- "Looking for hotels in Penang for next weekend"
+- "Need suggestions for my upcoming trip to Malaysia"
+
+Low Priority (Respond with "Low"):
+- General inquiries without time constraints
+- No urgency indicated in the request
+- Contains phrases like: "no rush", "when convenient", "sometime"
+- General recommendations without timeframe
+Example questions that should be Low:
+- "Recommend me some nice places to travel around, no rush in replying"
+- "What are some good restaurants in KL?"
+- "Looking for interesting places to visit in Malaysia"
+- "Share some travel tips for Malaysia"
+
+Analyze the input and respond with ONLY ONE WORD: "High", "Medium", or "Low".
+If there's any mention of immediate need or current location, prioritize that over other factors.`
             },
             {
               role: "user",
-              content: `Analyze this question and determine its priority level (Low, Medium, or High):\n\nTitle: ${title}\n\nDescription: ${description}`
+              content: `Analyze this question's priority level:\n\nTitle: ${title}\n\nDescription: ${description}`
             }
           ],
-          temperature: 0.3,
+          temperature: 0.1, // Lower temperature for more consistent results
           max_tokens: 10,
         }),
       });
 
       const data = await response.json();
+      console.log("OpenAI Raw Response:", data);
+
       if (response.ok) {
         const priority = data.choices[0].message.content.trim();
+        console.log("Determined Priority Level:", priority);
+        
+        // Validate the response is one of the expected values
+        if (!["High", "Medium", "Low"].includes(priority)) {
+          console.log("Invalid priority returned, defaulting to Medium");
+          return "Medium";
+        }
+        
         return priority;
       } else {
-        console.error("API Error:", data);
-        return "Medium"; // Default to Medium if API call fails
+        console.error("OpenAI API Error:", data);
+        return "Medium";
       }
     } catch (error) {
-      console.error("Error analyzing priority:", error);
-      return "Medium"; // Default to Medium if there's an error
+      console.error("Error in priority analysis:", error);
+      return "Medium";
     }
   };
   
@@ -197,103 +191,55 @@ const AskLocalScreen = ({ navigation }) => {
       return;
     }
 
-    // For regular response (no payment)
-    const savePost = async (isPriority = false) => {
-      try {
-        const response = await fetch('http://10.0.2.2:3000/addPost', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            title,
-            description,
-            user_id: userId,
-            priority: isPriority
-          }),
-        });
-
-        const data = await response.json();
-        if (response.ok) {
-          setShowSuccessModal(true);
-        } else {
-          Alert.alert('Error', data.error || 'Failed to save post');
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        Alert.alert('Error', 'Failed to connect to server');
-      }
-    };
-
-    // Check priority level and show modal
-    const priorityLevel = await analyzePriorityLevel(title, description);
-    setPriorityLevel(priorityLevel);
-    setShowPriorityModal(true);
-
-    // Handle user's choice in the modal
-    setPriorityOptionSelected((choice) => {
-      if (choice === 'regular') {
-        // Save as regular post (priority = false)
-        savePost(false);
-      } else if (choice === 'priority') {
-        // Navigate to payment screen for priority post
-        navigation.navigate('Payment', {
-          questionData: {
-            title,
-            description,
-            user_id: userId,
-            priority: true
-          }
-        });
-      }
-    });
-  };
-  
-
-/*
-  const handleSubmit = async () => {
-    const questionData = {
-      user_id: userId,
-      title,
-      description
-    };
-  
-    console.log('📤 Data Sent to Server:', questionData);
-
     try {
-      const response = await fetch('http://10.0.2.2:3000/addQuestion', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(questionData)
-      });
-  
-      const contentType = response.headers.get('content-type');
-      let data;
-  
-      if (contentType && contentType.includes('application/json')) {
-        data = await response.json(); // ✅ Parse once here
-      } else {
-        const text = await response.text(); // fallback
-        console.warn('⚠️ Received non-JSON response:', text);
-        data = { error: text }; // Optional: wrap fallback text as error
-      }
-  
-      console.log('📩 Server Response:', data);
-  
-      if (response.ok) {
-        Alert.alert('Success', 'Post added successfully!');
-        navigation.navigate('Explore');
-      } else {
-        Alert.alert('Error', data.error || 'Unknown error occurred.');
-      }
-  
+      console.log("Analyzing priority for:", { title, description });
+      const priorityLevel = await analyzePriorityLevel(title, description);
+      console.log("Final Priority Level:", priorityLevel);
+
+      // Set the priority level and show the modal
+      setPriorityLevel(priorityLevel);
+      setShowPriorityModal(true);
+
     } catch (error) {
-      console.error('❌ Network Error:', error);
-      Alert.alert('Error', 'Failed to connect to the server.');
+      console.error('Error:', error);
+      Alert.alert('Error', 'Failed to analyze priority');
     }
   };
-  
-*/
+
+  // Add this function to handle the priority option selection
+  const handlePriorityOptionSelect = async (isPriorityResponse) => {
+    try {
+      const questionData = {
+        title,
+        description,
+        user_id: userId,
+        priority: priorityLevel // Always use the analyzed priority level (High, Medium, or Low)
+      };
+
+      console.log("Sending question data with priority:", questionData);
+
+      const response = await fetch('http://172.30.1.98:3000/addQuestion', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(questionData)
+      });
+
+      const data = await response.json();
+      console.log("Server Response:", data);
+
+      if (response.ok) {
+        setShowPriorityModal(false);
+        setShowSuccessModal(true);
+      } else {
+        Alert.alert('Error', data.error || 'Failed to save question');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      Alert.alert('Error', 'Failed to connect to server');
+    }
+  };
 
   const getPriorityColor = (priority) => {
     switch (priority) {
@@ -314,12 +260,12 @@ const AskLocalScreen = ({ navigation }) => {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <FontAwesome5 name="arrow-left" size={20} color="white" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{screenTitle}</Text>
+        <Text style={styles.headerTitle}>{route.params?.title || "Ask Local"}</Text>
       </View>
 
 
       <View style={{ flex: 1 }}>
-        {screenTitle === "New Post" && (
+        {route.params?.title === "New Post" && (
           <FlatList
             data={[...images, "add_button"]}
             keyExtractor={(item, index) => index.toString()}
@@ -351,21 +297,27 @@ const AskLocalScreen = ({ navigation }) => {
 
         {/* Title Input (No Margin) */}
         <TextInput
-          style={[styles.titleInput, { marginTop: 0 }]}  // No top margin
+          style={[styles.titleInput, { marginTop: 0 }]}
           placeholder="Add a title"
           placeholderTextColor="#bbb"
           value={title}
           onChangeText={setTitle}
+          editable={true}
+          autoCapitalize="sentences"
         />
 
-        {/* Description Input (No Margin) */}
+        {/* Description Input */}
         <TextInput
-          style={[styles.descriptionInput, { marginTop: 0 }]}  // No top margin
+          style={[styles.descriptionInput, { marginTop: 0 }]}
           placeholder="Add text"
           placeholderTextColor="#bbb"
           multiline
           value={description}
           onChangeText={setDescription}
+          editable={true}
+          textAlignVertical="top"
+          numberOfLines={10}
+          autoCapitalize="sentences"
         />
 
 
@@ -468,7 +420,7 @@ const AskLocalScreen = ({ navigation }) => {
         </TouchableOpacity>
         {/* <TouchableOpacity style={styles.postButton} onPress={() => setShowSimilarQuestions(true)}></TouchableOpacity> */}
         <TouchableOpacity style={styles.postButton} onPress={handleSubmit}>
-          <Text style={styles.postButtonText}>{screenButton}</Text>
+          <Text style={styles.postButtonText}>{buttonText}</Text>
         </TouchableOpacity>
       </View>
 
@@ -480,20 +432,23 @@ const AskLocalScreen = ({ navigation }) => {
               <Text style={styles.modalTitle}>{priorityLevel} Priority</Text>
             </View>
             <View style={styles.modalBody}>
-              <Text style={styles.modalDescription}>Would you like to add a priority fee for faster response?</Text>
+              <Text style={styles.modalDescription}>
+                This question has been analyzed as {priorityLevel} priority.{'\n'}
+                Would you like to add a priority fee for faster response?
+              </Text>
               <View style={styles.optionsContainer}>
                 <TouchableOpacity 
                   style={[styles.priorityOption, { marginBottom: 15 }]} 
                   onPress={() => {
-                    setShowPriorityModal(false);
                     navigation.navigate("Payment", { 
                       questionData: {
                         user_id: userId,
                         title,
                         description,
-                        priority: true // Set priority to true when user chooses to pay
+                        priority: priorityLevel // Keep the analyzed priority level
                       }
                     });
+                    setShowPriorityModal(false);
                   }}
                 >
                   <View style={styles.optionContent}>
@@ -504,35 +459,7 @@ const AskLocalScreen = ({ navigation }) => {
                 </TouchableOpacity>
                 <TouchableOpacity 
                   style={styles.priorityOption}
-                  onPress={async () => {
-                    setShowPriorityModal(false);
-                    const questionData = {
-                      user_id: userId,
-                      title,
-                      description,
-                      priority: false // Set priority to false for regular response
-                    };
-
-                    try {
-                      const response = await fetch('http://10.0.2.2:3000/addQuestion', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(questionData),
-                      });
-
-                      const data = await response.json();
-                      console.log('📩 Server Response:', data);
-
-                      if (response.ok) {
-                        setShowSuccessModal(true);
-                      } else {
-                        Alert.alert('Error', data.error || 'Unknown error occurred.');
-                      }
-                    } catch (err) {
-                      console.error('❌ Network Error:', err);
-                      Alert.alert('Error', 'Failed to connect to the server.');
-                    }
-                  }}
+                  onPress={() => handlePriorityOptionSelect(false)}
                 >
                   <View style={styles.optionContent}>
                     <Text style={styles.priorityText}>Regular Response</Text>
@@ -634,19 +561,23 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     color: "white",
-    marginBottom: 10,     // Maintain clean spacing
-    marginTop: 10,        // Adds minimal space from FlatList
+    marginBottom: 10,
     borderBottomWidth: 1,
     borderBottomColor: "#444",
     paddingBottom: 5,
+    paddingHorizontal: 10,
+    minHeight: 40,
   },
   descriptionInput: {
     fontSize: 14,
-    color: "#bbb",
+    color: "white",
     marginBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#444",
     paddingBottom: 5,
+    paddingHorizontal: 10,
+    minHeight: 200,
+    textAlignVertical: "top",
   },
   uploadButton: {
     width: 80,

@@ -250,7 +250,7 @@ const questionsData = [
         level: "Lv4",
         nationality: "Cafe Hopper",
         profileImage: require("../assets/explore/solotravel.png"),
-        text: "Merchant’s Lane is my go-to spot. Vintage vibes with amazing food.",
+        text: "Merchant's Lane is my go-to spot. Vintage vibes with amazing food.",
         images: [],
         likes: 13,
         suggests: "96%",
@@ -283,7 +283,7 @@ const questionsData = [
         level: "Lv2",
         nationality: "Frequent Traveler",
         profileImage: require("../assets/explore/solotravel.png"),
-        text: "Toby’s Estate serves one of the best flat whites in KL!",
+        text: "Toby's Estate serves one of the best flat whites in KL!",
         images: [],
         likes: 5,
         suggests: "85%",
@@ -316,7 +316,7 @@ const questionsData = [
         level: "Lv5",
         nationality: "Barista Trainer",
         profileImage: require("../assets/explore/solotravel.png"),
-        text: "Don’t miss out on One Half x ilaika, great for handcrafted drinks and chill vibes.",
+        text: "Don't miss out on One Half x ilaika, great for handcrafted drinks and chill vibes.",
         images: [],
         likes: 14,
         suggests: "95%",
@@ -342,15 +342,23 @@ const ExploreComponent = () => {
   const [selectedCategory, setSelectedCategory] = useState("Recommend");
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Filter explore data based on search query
+  const filteredExploreData = exploreData.filter(item => {
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      item.title.toLowerCase().includes(searchLower) ||
+      item.description.toLowerCase().includes(searchLower)
+    );
+  });
+
   return (
     <View style={styles.container}>
-
       {/* Search Bar */}
       <View style={styles.searchContainerBig}>
         <View style={styles.searchContainer}>
           <TextInput
             style={styles.searchInput}
-            placeholder="Search"
+            placeholder="Search by title or description"
             placeholderTextColor="#bbb"
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -396,31 +404,35 @@ const ExploreComponent = () => {
               </View>
             </View>
           </TouchableOpacity>
-
         )}
         columnWrapperStyle={styles.columnWrapper}
-        contentContainerStyle={{ paddingBottom: 5 }} // Add spacing to prevent UI cutting off
+        contentContainerStyle={{ paddingBottom: 5 }}
       />
     </View>
   );
 };
 
-
-
 const QuestionsComponent = () => {
   const navigation = useNavigation();
   const [selectedCategory, setSelectedCategory] = useState("Recommend");
   const [selectedAnswer, setSelectedAnswer] = useState(null);
-
   const [searchQuery, setSearchQuery] = useState("");
   const [questionsData, setQuestionsData] = useState([]);
 
+  // Filter questions data based on search query
+  const filteredQuestionsData = questionsData.filter(item => {
+    const searchLower = searchQuery.toLowerCase();
+    return (
+      item.title.toLowerCase().includes(searchLower) ||
+      item.description.toLowerCase().includes(searchLower)
+    );
+  });
 
   useFocusEffect(
     useCallback(() => {
       const fetchQuestions = async () => {
         try {
-          const response = await fetch('http://10.0.2.2:3000/getQuestions');
+          const response = await fetch('http://172.30.1.98:3000/getQuestions');
           const data = await response.json();
           setQuestionsData(data);
         } catch (error) {
@@ -452,7 +464,6 @@ const QuestionsComponent = () => {
     return map[country?.trim()] || "🌍"; // default: globe
   };
 
-
   return (
     <ScrollView style={styles.container}>
       {/* Search Bar */}
@@ -460,7 +471,7 @@ const QuestionsComponent = () => {
         <View style={styles.searchContainer}>
           <TextInput
             style={styles.searchInput}
-            placeholder="Search"
+            placeholder="Search by title or description"
             placeholderTextColor="#bbb"
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -470,6 +481,7 @@ const QuestionsComponent = () => {
           <FontAwesome5 name="edit" size={20} color="#8A2BE2" />
         </TouchableOpacity>
       </View>
+
       {/* Category Filters */}
       <View style={styles.categoryContainer}>
         {categories.map((category) => (
@@ -487,7 +499,7 @@ const QuestionsComponent = () => {
       </View>
 
       {/* List of Questions */}
-      {questionsData.map((item) => (
+      {filteredQuestionsData.map((item) => (
         <View key={item.id} style={styles.questionCard}>
           <View style={styles.cardHeader}>
             <View style={styles.profileContainer}>
@@ -496,16 +508,19 @@ const QuestionsComponent = () => {
             </View>
             <View style={styles.textContainer}>
               <View style={styles.tagRow}>
-                {/* TODO VVIP From profile */}
-                <Text style={styles.user}>{item.name}   {item.priority && <Text style={styles.questionTag}>{item.vvip}</Text>}
-                </Text>
-                {/* TODO priority From ask questions*/}
+                <Text style={styles.user}>{item.name}   {item.priority && <Text style={styles.questionTag}>{item.vvip}</Text>}</Text>
                 {item.priority && <Text style={styles.priority}>{item.priority}</Text>}
               </View>
               <Text style={styles.questionTitle}>{item.title}</Text>
             </View>
           </View>
-          <Text style={styles.questionDetails}>{item.description}</Text>
+          <Text 
+            style={styles.questionDetails} 
+            numberOfLines={2}
+            ellipsizeMode="tail"
+          >
+            {item.description}
+          </Text>
           <View style={styles.answerContainer}>
             <TouchableOpacity
               style={[styles.answerButton, selectedAnswer === item.id && styles.answerButtonActive]}
@@ -527,7 +542,6 @@ const QuestionsComponent = () => {
                       <Text style={styles.responseUser}>{response.user}   <Text style={styles.levelTag}>{response.level}</Text></Text>
                       <Text style={styles.responseTag}>{response.nationality}</Text>
                     </View>
-
                     <Text style={styles.timestamp}>{response.timestamp}</Text>
                   </View>
                   <Text style={styles.responseText}>{response.text}</Text>
@@ -549,8 +563,6 @@ const QuestionsComponent = () => {
             </View>
           )}
         </View>
-
-
       ))}
     </ScrollView>
   );

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
     View,
     Text,
@@ -13,7 +13,42 @@ import { OPENAI_API_KEY } from '@env';  // Ensure your .env file is properly con
 const ContentGPT = ({ navigation }) => {
     const [messages, setMessages] = useState([]);
     const [inputText, setInputText] = useState("");
+    const [title, setTitle] = useState("");
+    const [description, setDescription] = useState("");
+    const [applyQueue, setApplyQueue] = useState([]);
+    const [isProcessing, setIsProcessing] = useState(false);
     const flatListRef = useRef(null);
+
+    // Process the queue
+    useEffect(() => {
+        const processQueue = async () => {
+            if (applyQueue.length > 0 && !isProcessing) {
+                setIsProcessing(true);
+                const { title: queuedTitle, description: queuedDescription } = applyQueue[0];
+                
+                // Update the state variables
+                setTitle(queuedTitle);
+                setDescription(queuedDescription);
+                
+                // Create a new message with the extracted content
+                const newMessage = {
+                    id: Date.now().toString(),
+                    text: `Title: ${queuedTitle}\n\nDescription: ${queuedDescription}`,
+                    sender: "user"
+                };
+                
+                // Add the new message to the chat
+                setMessages(prevMessages => [...prevMessages, newMessage]);
+                flatListRef.current.scrollToEnd({ animated: true });
+                
+                // Remove the processed item from the queue
+                setApplyQueue(prevQueue => prevQueue.slice(1));
+                setIsProcessing(false);
+            }
+        };
+
+        processQueue();
+    }, [applyQueue, isProcessing]);
 
     const handleSend = async () => {
         if (inputText.trim().length === 0) return;
@@ -25,6 +60,10 @@ const ContentGPT = ({ navigation }) => {
         flatListRef.current.scrollToEnd({ animated: true });
 
         try {
+            // Check if this is a follow-up response
+            const lastBotMessage = messages[messages.length - 1]?.sender === "bot" ? messages[messages.length - 1].text : null;
+            const isFollowUp = lastBotMessage && lastBotMessage.includes("Please provide more details");
+
             const response = await fetch("https://api.openai.com/v1/chat/completions", {
                 method: "POST",
                 headers: {
@@ -32,11 +71,68 @@ const ContentGPT = ({ navigation }) => {
                     "Authorization": `Bearer ${OPENAI_API_KEY}`,
                 },
                 body: JSON.stringify({
-                    model: "gpt-4-0125-preview",
-                    messages: [{ role: "user", content: inputText }],
-                    max_tokens: 100,
+                    model: "gpt-3.5-turbo",
+                    messages: [
+                        {
+                            role: "system",
+                            content: `You are a specialized content creator for travel and local experiences. Your task is to create detailed, engaging content about specific places and experiences.
+
+When a user asks about a general topic (e.g., "best nasi lemak in PJ"), first ask for the specific place they want to write about. For example:
+"Please provide more details about the specific place you want to write about. For example, the restaurant name and location."
+
+Once they provide a specific place (e.g., "Village Park Restaurant – Damansara Uptown"), create a detailed, engaging post with this structure:
+
+Title: [Catchy, specific title about the place]
+
+Description: [Detailed description with these sections]
+
+🌟 HIGHLIGHTS
+• [Main highlight 1] ✨
+• [Main highlight 2] ✨
+• [Main highlight 3] ✨
+
+🍽️ FOOD & DRINKS
+• [Signature dish 1] 🍜
+• [Signature dish 2] 🍛
+• [Must-try items] 🍢
+
+💫 AMBIENCE & VIBE
+• [Atmosphere description] 🎯
+• [Interior details] 🎯
+• [Special features] 🎯
+
+📍 LOCATION & DETAILS
+• Address: [Full address] 📍
+• Operating Hours: [Hours] 🕒
+• Price Range: [Price info] 💰
+• Contact: [Phone/Website] 📞
+
+💡 TIPS & RECOMMENDATIONS
+• [Best time to visit] 💫
+• [What to order] 💫
+• [Special tips] 💫
+
+📸 PHOTO OPPORTUNITIES
+• [Photo spots] 📷
+• [Instagrammable areas] 📷
+
+🎉 SPECIAL FEATURES
+• [Unique aspects] 🎪
+• [Awards/Recognition] 🎪
+
+Use appropriate emojis throughout the text to make it more engaging and visually appealing. Keep the title concise and engaging. The description should be informative, helpful, and visually structured with emojis.`
+                        },
+                        {
+                            role: "user",
+                            content: isFollowUp ? 
+                                `Specific place: ${inputText}` : 
+                                `Generate content about: ${inputText}`
+                        }
+                    ],
+                    temperature: 0.7,
+                    max_tokens: 800,
                 }),
-                keepalive: true, // Prevents Expo from closing the connection early
+                keepalive: true,
             });
 
             const data = await response.json();
@@ -60,6 +156,70 @@ const ContentGPT = ({ navigation }) => {
         }
     };
 
+    const handleApply = (message) => {
+        console.log("Original message:", message);
+        
+        // Extract title and description from the message
+        const titleMatch = message.match(/Title: (.*?)(?:\n|$)/);
+        const descriptionMatch = message.match(/Description: ([\s\S]*?)(?:\n|$)/);
+        
+        console.log("Title match:", titleMatch);
+        console.log("Description match:", descriptionMatch);
+        
+        if (titleMatch && descriptionMatch) {
+            const extractedTitle = titleMatch[1].trim();
+            const extractedDescription = descriptionMatch[1].trim();
+            
+            console.log("Extracted title:", extractedTitle);
+            console.log("Extracted description:", extractedDescription);
+            
+            // Navigate to AskLocalScreen with the extracted data
+            navigation.navigate('AskLocal', {
+                title: extractedTitle,
+                description: extractedDescription,
+                button: "Post"
+            });
+        } else {
+            // If regex fails, try to get everything after "Description:"
+            const descriptionStart = message.indexOf("Description:");
+            if (descriptionStart !== -1) {
+                const extractedDescription = message.substring(descriptionStart + "Description:".length).trim();
+                const extractedTitle = message.substring(message.indexOf("Title:") + "Title:".length, descriptionStart).trim();
+                
+                console.log("Fallback extraction - Title:", extractedTitle);
+                console.log("Fallback extraction - Description:", extractedDescription);
+                
+                navigation.navigate('AskLocal', {
+                    title: extractedTitle,
+                    description: extractedDescription,
+                    button: "Post"
+                });
+            }
+        }
+    };
+
+    const renderMessage = ({ item }) => {
+        if (item.sender === "user") {
+            return (
+                <View style={[styles.messageBubble, styles.userMessage]}>
+                    <Text style={styles.messageText}>{item.text}</Text>
+                </View>
+            );
+        } else {
+            return (
+                <View style={[styles.messageBubble, styles.botMessage]}>
+                    <Text style={styles.messageText}>{item.text}</Text>
+                    <TouchableOpacity 
+                        style={styles.applyButton}
+                        onPress={() => handleApply(item.text)}
+                    >
+                        <Text style={styles.applyButtonText}>Apply</Text>
+                    </TouchableOpacity>
+                </View>
+            );
+        }
+    };
+
     return (
         <View style={styles.container}>
             <View style={styles.header}>
@@ -74,11 +234,7 @@ const ContentGPT = ({ navigation }) => {
                 ref={flatListRef}
                 data={messages}
                 keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                    <View style={[styles.messageBubble, item.sender === "user" ? styles.userMessage : styles.botMessage]}>
-                        <Text style={styles.messageText}>{item.text}</Text>
-                    </View>
-                )}
+                renderItem={renderMessage}
                 contentContainerStyle={styles.messagesContainer}
             />
 
@@ -165,6 +321,19 @@ const styles = StyleSheet.create({
     },
     sendButton: {
         padding: 8,
+    },
+    applyButton: {
+        backgroundColor: "#8A2BE2",
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        borderRadius: 20,
+        marginTop: 10,
+        alignSelf: "flex-start",
+    },
+    applyButtonText: {
+        color: "white",
+        fontSize: 14,
+        fontWeight: "bold",
     },
 });
 

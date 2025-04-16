@@ -151,25 +151,38 @@ app.post('/addQuestion', (req, res) => {
 
 
 app.post('/addPost', (req, res) => {
-    const { user_id, title, description } = req.body;
+    const { user_id, title, description, priority } = req.body;
 
     if (!user_id || !title || !description) {
         return res.status(400).json({ error: 'User ID, title, and description are required.' });
     }
 
+    // Convert priority to 1 or 0 for MySQL boolean
+    const priorityValue = priority === true ? 1 : 0;
+
+    // Log incoming data for debugging
+    console.log('📥 Incoming Post Data:', { user_id, title, description, priority, priorityValue });
+
     const insertPostSQL = `
-        INSERT INTO posts (title, description, user_id)
-        VALUES (?, ?, ?)
+        INSERT INTO posts (title, description, user_id, priority)
+        VALUES (?, ?, ?, ?)
     `;
 
-    db.query(insertPostSQL, [title, description, user_id], (err, result) => {
-
+    db.query(insertPostSQL, [title, description, user_id, priorityValue], (err, result) => {
         if (err) {
-            console.error('❌ Error inserting post:', err);
-            return res.status(500).json({ error: 'Failed to save post.' });
+            console.error('❌ Database Error:', err);
+            return res.status(500).json({ 
+                error: 'Failed to save post.',
+                details: err.message 
+            });
         }
 
-        res.status(201).json({ message: 'Post added successfully!', postId: result.insertId });
+        console.log('✅ Post saved successfully:', result);
+        res.status(201).json({ 
+            message: 'Post added successfully!', 
+            postId: result.insertId,
+            priority: priority
+        });
     });
 });
 

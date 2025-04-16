@@ -74,7 +74,7 @@ const ProfilePictureScreen = () => {
         };
 
         try {
-            const response = await fetch('http://10.0.2.2:3000/saveUserData', {
+            const response = await fetch('http://172.30.1.98:3000/saveUserData', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(userData)

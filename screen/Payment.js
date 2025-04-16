@@ -10,17 +10,20 @@ const PaymentScreen = ({ route }) => {
   const { questionData } = route.params || {};
 
   const handlePayment = async () => {
-    try {
-      // Always set priority to true when payment is successful
+    try {     
       const postData = {
         ...questionData,
-        priority: true // Ensure priority is set to true after payment
+        priority: true
       };
 
-      const response = await fetch('http://10.0.2.2:3000/addPost', {
+      console.log('📤 Sending post data:', postData); // Debug log
+
+      const response = await fetch('http://172.30.1.98:3000/addPost', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(postData),
+        headers: { 
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(postData)
       });
 
       const data = await response.json();
