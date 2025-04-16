@@ -132,7 +132,10 @@ app.post('/addQuestion', (req, res) => {
         VALUES (?, ?, ?, ?)
     `;
 
-    db.query(insertPostSQL, [title, description, user_id, priority || false], (err, result) => {
+    // Ensure priority is saved as a string
+    const priorityValue = priority === true ? "High" : priority;
+
+    db.query(insertPostSQL, [title, description, user_id, priorityValue], (err, result) => {
         if (err) {
             console.error('❌ Database Error:', err);
             return res.status(500).json({ 
@@ -141,10 +144,11 @@ app.post('/addQuestion', (req, res) => {
             });
         }
 
-        console.log('✅ Post saved successfully:', result);
+        console.log('✅ Post saved successfully with priority:', priorityValue);
         res.status(201).json({ 
             message: 'Post added successfully!', 
-            postId: result.insertId 
+            postId: result.insertId,
+            priority: priorityValue
         });
     });
 });
@@ -157,8 +161,8 @@ app.post('/addPost', (req, res) => {
         return res.status(400).json({ error: 'User ID, title, and description are required.' });
     }
 
-    // Convert priority to 1 or 0 for MySQL boolean
-    const priorityValue = priority === true ? 1 : 0;
+    // Handle priority as a string value
+    const priorityValue = priority === true || priority === 1 ? "High" : priority;
 
     // Log incoming data for debugging
     console.log('📥 Incoming Post Data:', { user_id, title, description, priority, priorityValue });
@@ -177,11 +181,11 @@ app.post('/addPost', (req, res) => {
             });
         }
 
-        console.log('✅ Post saved successfully:', result);
+        console.log('✅ Post saved successfully with priority:', priorityValue);
         res.status(201).json({ 
             message: 'Post added successfully!', 
             postId: result.insertId,
-            priority: priority
+            priority: priorityValue
         });
     });
 });

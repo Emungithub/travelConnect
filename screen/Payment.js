@@ -11,14 +11,21 @@ const PaymentScreen = ({ route }) => {
 
   const handlePayment = async () => {
     try {     
+      // Explicitly create the data object with string priority
       const postData = {
-        ...questionData,
-        priority: true
+        user_id: questionData.user_id,
+        title: questionData.title,
+        description: questionData.description,
+        priority: "High"  // Explicitly set as string
       };
 
-      console.log('📤 Sending post data:', postData); // Debug log
+      // Log the exact data being sent
+      console.log('📤 Payment Data (before fetch):', {
+        ...postData,
+        priorityType: typeof postData.priority
+      });
 
-      const response = await fetch('http://172.30.1.98:3000/addPost', {
+      const response = await fetch('http://172.30.1.98:3000/addPost', {  // Changed to addPost endpoint
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json'

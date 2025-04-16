@@ -209,31 +209,45 @@ If there's any mention of immediate need or current location, prioritize that ov
   // Add this function to handle the priority option selection
   const handlePriorityOptionSelect = async (isPriorityResponse) => {
     try {
-      const questionData = {
-        title,
-        description,
-        user_id: userId,
-        priority: priorityLevel // Always use the analyzed priority level (High, Medium, or Low)
-      };
-
-      console.log("Sending question data with priority:", questionData);
-
-      const response = await fetch('http://172.30.1.98:3000/addQuestion', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(questionData)
-      });
-
-      const data = await response.json();
-      console.log("Server Response:", data);
-
-      if (response.ok) {
+      if (isPriorityResponse) {
+        // If user chooses priority response, navigate to payment
+        navigation.navigate("Payment", { 
+          questionData: {
+            user_id: userId,
+            title,
+            description,
+            priority: priorityLevel // Pass current priority level
+          }
+        });
         setShowPriorityModal(false);
-        setShowSuccessModal(true);
       } else {
-        Alert.alert('Error', data.error || 'Failed to save question');
+        // For regular response, save with analyzed priority level
+        const questionData = {
+          title,
+          description,
+          user_id: userId,
+          priority: priorityLevel // Keep the analyzed priority level
+        };
+
+        console.log("Sending regular question data with priority:", questionData);
+
+        const response = await fetch('http://172.30.1.98:3000/addQuestion', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(questionData)
+        });
+
+        const data = await response.json();
+        console.log("Server Response:", data);
+
+        if (response.ok) {
+          setShowPriorityModal(false);
+          setShowSuccessModal(true);
+        } else {
+          Alert.alert('Error', data.error || 'Failed to save question');
+        }
       }
     } catch (error) {
       console.error('Error:', error);
@@ -439,17 +453,7 @@ If there's any mention of immediate need or current location, prioritize that ov
               <View style={styles.optionsContainer}>
                 <TouchableOpacity 
                   style={[styles.priorityOption, { marginBottom: 15 }]} 
-                  onPress={() => {
-                    navigation.navigate("Payment", { 
-                      questionData: {
-                        user_id: userId,
-                        title,
-                        description,
-                        priority: priorityLevel // Keep the analyzed priority level
-                      }
-                    });
-                    setShowPriorityModal(false);
-                  }}
+                  onPress={() => handlePriorityOptionSelect(true)}
                 >
                   <View style={styles.optionContent}>
                     <Text style={styles.priorityText}>Priority Response</Text>
