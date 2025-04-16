@@ -269,16 +269,22 @@ If there's any mention of immediate need or current location, prioritize that ov
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.container}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+    >
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <FontAwesome5 name="arrow-left" size={20} color="white" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{route.params?.title || "Ask Local"}</Text>
+        <Text style={styles.headerTitle}>{route.params?.bigTitle || "Ask Local"}</Text>
       </View>
 
-
-      <View style={{ flex: 1 }}>
+      <ScrollView 
+        style={styles.contentContainer}
+        keyboardShouldPersistTaps="handled"
+      >
         {route.params?.title === "New Post" && (
           <FlatList
             data={[...images, "add_button"]}
@@ -308,8 +314,7 @@ If there's any mention of immediate need or current location, prioritize that ov
           />
         )}
 
-
-        {/* Title Input (No Margin) */}
+        {/* Title Input */}
         <TextInput
           style={[styles.titleInput, { marginTop: 0 }]}
           placeholder="Add a title"
@@ -318,11 +323,12 @@ If there's any mention of immediate need or current location, prioritize that ov
           onChangeText={setTitle}
           editable={true}
           autoCapitalize="sentences"
+          textAlign="left"
         />
 
         {/* Description Input */}
         <TextInput
-          style={[styles.descriptionInput, { marginTop: 0 }]}
+          style={[styles.descriptionInput, { marginTop: 0, height: 300 }]}
           placeholder="Add text"
           placeholderTextColor="#bbb"
           multiline
@@ -330,10 +336,10 @@ If there's any mention of immediate need or current location, prioritize that ov
           onChangeText={setDescription}
           editable={true}
           textAlignVertical="top"
-          numberOfLines={10}
+          textAlign="left"
+          scrollEnabled={true}
           autoCapitalize="sentences"
         />
-
 
         <View style={styles.optionsContainer}>
           <TouchableOpacity style={styles.optionButton}>
@@ -419,8 +425,7 @@ If there's any mention of immediate need or current location, prioritize that ov
             </View>
           </TouchableWithoutFeedback>
         </KeyboardAvoidingView>
-
-      </View>
+      </ScrollView>
 
       <View style={styles.bottomActions}>
         <TouchableOpacity
@@ -432,7 +437,6 @@ If there's any mention of immediate need or current location, prioritize that ov
           </View>
           <Text style={styles.contentGptText}>Content GPT</Text>
         </TouchableOpacity>
-        {/* <TouchableOpacity style={styles.postButton} onPress={() => setShowSimilarQuestions(true)}></TouchableOpacity> */}
         <TouchableOpacity style={styles.postButton} onPress={handleSubmit}>
           <Text style={styles.postButtonText}>{buttonText}</Text>
         </TouchableOpacity>
@@ -513,8 +517,7 @@ If there's any mention of immediate need or current location, prioritize that ov
           </View>
         </View>
       </Modal>
-
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -670,14 +673,18 @@ const styles = StyleSheet.create({
   postButton: {
     backgroundColor: "#A64DFF",
     paddingVertical: 12,
-    paddingHorizontal: 130,
+    paddingHorizontal: 30,
     borderRadius: 30,
+    flex: 1,
+    marginLeft: 10,
   },
   postButtonText: {
     color: "white",
     fontSize: 16,
     fontWeight: "bold",
-  }, modalContainer: {
+    textAlign: "center",
+  }, 
+  modalContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",

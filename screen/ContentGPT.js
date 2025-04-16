@@ -6,6 +6,8 @@ import {
     TouchableOpacity,
     FlatList,
     StyleSheet,
+    KeyboardAvoidingView,
+    Platform,
 } from "react-native";
 import { FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { OPENAI_API_KEY } from '@env';  // Ensure your .env file is properly configured
@@ -157,11 +159,11 @@ Use appropriate emojis throughout the text to make it more engaging and visually
     };
 
     const handleApply = (message) => {
-        console.log("Original message:", message);
+        console.log("Apply button clicked with message:", message);
         
         // Extract title and description from the message
         const titleMatch = message.match(/Title: (.*?)(?:\n|$)/);
-        const descriptionMatch = message.match(/Description: ([\s\S]*?)(?:\n|$)/);
+        const descriptionMatch = message.match(/Description: ([\s\S]*?)(?:\n\n|$)/);
         
         console.log("Title match:", titleMatch);
         console.log("Description match:", descriptionMatch);
@@ -173,27 +175,56 @@ Use appropriate emojis throughout the text to make it more engaging and visually
             console.log("Extracted title:", extractedTitle);
             console.log("Extracted description:", extractedDescription);
             
-            // Navigate to AskLocalScreen with the extracted data
-            navigation.navigate('AskLocal', {
-                title: extractedTitle,
-                description: extractedDescription,
-                button: "Post"
-            });
-        } else {
-            // If regex fails, try to get everything after "Description:"
-            const descriptionStart = message.indexOf("Description:");
-            if (descriptionStart !== -1) {
-                const extractedDescription = message.substring(descriptionStart + "Description:".length).trim();
-                const extractedTitle = message.substring(message.indexOf("Title:") + "Title:".length, descriptionStart).trim();
-                
-                console.log("Fallback extraction - Title:", extractedTitle);
-                console.log("Fallback extraction - Description:", extractedDescription);
-                
+            try {
+                // Navigate to AskLocalScreen with the extracted data
                 navigation.navigate('AskLocal', {
                     title: extractedTitle,
                     description: extractedDescription,
-                    button: "Post"
+                    button: "Post",
+                    bigTitle: "Create Post"
                 });
+                console.log("Navigation successful");
+            } catch (error) {
+                console.error("Navigation error:", error);
+            }
+        } else {
+            console.log("Failed to extract title or description");
+            // Fallback: Try to find title and description by splitting the message
+            const lines = message.split('\n');
+            let fallbackTitle = '';
+            let fallbackDescription = '';
+            let foundDescription = false;
+            
+            for (let i = 0; i < lines.length; i++) {
+                if (lines[i].startsWith('Title:')) {
+                    fallbackTitle = lines[i].replace('Title:', '').trim();
+                } else if (lines[i].startsWith('Description:')) {
+                    fallbackDescription = lines[i].replace('Description:', '').trim();
+                    foundDescription = true;
+                } else if (foundDescription) {
+                    // Add all remaining lines to description
+                    fallbackDescription += '\n' + lines[i].trim();
+                }
+            }
+            
+            if (fallbackTitle && fallbackDescription) {
+                console.log("Using fallback extraction:");
+                console.log("Fallback title:", fallbackTitle);
+                console.log("Fallback description:", fallbackDescription);
+                
+                try {
+                    navigation.navigate('AskLocal', {
+                        title: fallbackTitle,
+                        description: fallbackDescription,
+                        button: "Post",
+                        bigTitle: "Create Post"
+                    });
+                    console.log("Navigation successful with fallback");
+                } catch (error) {
+                    console.error("Navigation error with fallback:", error);
+                }
+            } else {
+                console.log("Fallback extraction also failed");
             }
         }
     };
@@ -221,7 +252,11 @@ Use appropriate emojis throughout the text to make it more engaging and visually
     };
 
     return (
-        <View style={styles.container}>
+        <KeyboardAvoidingView 
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={styles.container}
+            keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
+        >
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()}>
                     <FontAwesome5 name="arrow-left" size={20} color="white" />
@@ -236,24 +271,23 @@ Use appropriate emojis throughout the text to make it more engaging and visually
                 keyExtractor={(item) => item.id}
                 renderItem={renderMessage}
                 contentContainerStyle={styles.messagesContainer}
+                keyboardShouldPersistTaps="handled"
             />
 
             <View style={styles.inputContainer}>
-                <TouchableOpacity style={styles.plusButton}>
-                    <Ionicons name="add-outline" size={24} color="white" />
-                </TouchableOpacity>
                 <TextInput
                     style={styles.input}
                     placeholder="Message ContentGPT"
                     placeholderTextColor="#888"
                     value={inputText}
                     onChangeText={setInputText}
+                    multiline={false}
                 />
                 <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
                     <Ionicons name="send" size={24} color="white" />
                 </TouchableOpacity>
             </View>
-        </View>
+        </KeyboardAvoidingView>
     );
 };
 
@@ -281,6 +315,7 @@ const styles = StyleSheet.create({
     messagesContainer: {
         flexGrow: 1,
         padding: 15,
+        paddingBottom: 20, // Add extra padding at bottom for keyboard
     },
     messageBubble: {
         padding: 10,
@@ -306,6 +341,7 @@ const styles = StyleSheet.create({
         padding: 10,
         borderTopWidth: 1,
         borderTopColor: "#333",
+        backgroundColor: "#000", // Ensure background color matches
     },
     input: {
         flex: 1,
