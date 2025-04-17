@@ -185,92 +185,82 @@ If there's any mention of immediate need or current location, prioritize that ov
     }
 
     try {
-        // Get the token from AsyncStorage
-        const token = await AsyncStorage.getItem('token');
-        if (!token) {
+        // Get userId from AsyncStorage
+        const storedUserId = await AsyncStorage.getItem('userId');
+        if (!storedUserId) {
             Alert.alert('Error', 'Please login to post');
             return;
         }
 
-        const response = await fetch('http://192.168.35.214:3000/addImagePost', {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({
-              title,
-              description,
-              images: images.map(image => image.uri)
-          })
-      });
-      
-
-        const data = await response.json();
-        console.log('📥 Server response:', data);
-
-        if (response.ok) {
-            setShowSuccessModal(true);
-            // Clear the form
-            setTitle('');
-            setDescription('');
-            setImages([]);
-            setPriorityLevel('Medium');
-        } else {
-            Alert.alert('Error', data.error || 'Failed to save post');
-        }
+        // Analyze priority level
+        const analyzedPriority = await analyzePriorityLevel(title, description);
+        setPriorityLevel(analyzedPriority);
+        
+        // Show priority modal instead of directly submitting
+        setShowPriorityModal(true);
     } catch (error) {
-        console.error('❌ Error submitting post:', error);
-        Alert.alert('Error', 'Failed to connect to server 1');
+        console.error('❌ Error analyzing priority:', error);
+        Alert.alert('Error', 'Failed to analyze priority');
     }
   };
 
   // Add this function to handle the priority option selection
   const handlePriorityOptionSelect = async (isPriorityResponse) => {
     try {
-      if (isPriorityResponse) {
-        // If user chooses priority response, navigate to payment
-        navigation.navigate("Payment", { 
-          questionData: {
-            user_id: userId,
-            title,
-            description,
-            priority: priorityLevel // Pass current priority level
-          }
-        });
-        setShowPriorityModal(false);
-      } else {
-        // For regular response, save with analyzed priority level
-        const questionData = {
-          title,
-          description,
-          user_id: userId,
-          priority: priorityLevel // Keep the analyzed priority level
-        };
-
-        console.log("Sending regular question data with priority:", questionData);
-
-        const response = await fetch('http://192.168.35.214:3000/addQuestion', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(questionData)
-        });
-
-        const data = await response.json();
-        console.log("Server Response:", data);
-
-        if (response.ok) {
-          setShowPriorityModal(false);
-          setShowSuccessModal(true);
-        } else {
-          Alert.alert('Error', data.error || 'Failed to save question');
+        const storedUserId = await AsyncStorage.getItem('userId');
+        if (!storedUserId) {
+            Alert.alert('Error', 'Please login to post');
+            return;
         }
-      }
+
+        if (isPriorityResponse) {
+            // If user chooses priority response, navigate to payment
+            navigation.navigate("Payment", { 
+                questionData: {
+                    user_id: Number(storedUserId),
+                    title,
+                    description,
+                    priority: priorityLevel
+                }
+            });
+            setShowPriorityModal(false);
+        } else {
+            // For regular response, save with analyzed priority level
+            const questionData = {
+                title,
+                description,
+                user_id: Number(storedUserId),
+                priority: priorityLevel
+            };
+
+            console.log("Sending regular question data with priority:", questionData);
+
+            const response = await fetch('http://192.168.35.214:3000/addPost', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(questionData)
+            });
+
+            const data = await response.json();
+            console.log("Server Response:", data);
+
+            if (response.ok) {
+                setShowPriorityModal(false);
+                setShowSuccessModal(true);
+                // Clear the form
+                setTitle('');
+                setDescription('');
+                setImages([]);
+                setPriorityLevel('Medium');
+            } else {
+                Alert.alert('Error', data.error || 'Failed to save question');
+            }
+        }
     } catch (error) {
-      console.error('Error:', error);
-      Alert.alert('Error', 'Failed to connect to server2');
+        console.error('Error:', error);
+        Alert.alert('Error', 'Failed to connect to server');
     }
   };
 
