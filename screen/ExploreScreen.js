@@ -218,7 +218,7 @@ const QuestionsComponent = () => {
     useCallback(() => {
       const fetchQuestions = async () => {
         try {
-          const response = await fetch('http://172.30.1.98:3000/getQuestions');
+          const response = await fetch('http://192.168.35.214:3000/getQuestions');
           const data = await response.json();
           console.log("Fetched questions data:", JSON.stringify(data, null, 2));
           setQuestionsData(data);

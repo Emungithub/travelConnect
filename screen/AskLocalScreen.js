@@ -192,24 +192,19 @@ If there's any mention of immediate need or current location, prioritize that ov
             return;
         }
 
-        // Prepare the post data
-        const postData = {
-            title,
-            description,
-            images: images.map(image => image.uri), // Convert image objects to URIs
-            priority: priorityLevel
-        };
-
-        console.log('📤 Sending post data:', postData);
-
-        const response = await fetch('http://172.30.1.98:3000/addPostWithImages', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(postData)
-        });
+        const response = await fetch('http://192.168.35.214:3000/addImagePost', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+              title,
+              description,
+              images: images.map(image => image.uri)
+          })
+      });
+      
 
         const data = await response.json();
         console.log('📥 Server response:', data);
@@ -226,7 +221,7 @@ If there's any mention of immediate need or current location, prioritize that ov
         }
     } catch (error) {
         console.error('❌ Error submitting post:', error);
-        Alert.alert('Error', 'Failed to connect to server');
+        Alert.alert('Error', 'Failed to connect to server 1');
     }
   };
 
@@ -255,7 +250,7 @@ If there's any mention of immediate need or current location, prioritize that ov
 
         console.log("Sending regular question data with priority:", questionData);
 
-        const response = await fetch('http://172.30.1.98:3000/addQuestion', {
+        const response = await fetch('http://192.168.35.214:3000/addQuestion', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -275,7 +270,7 @@ If there's any mention of immediate need or current location, prioritize that ov
       }
     } catch (error) {
       console.error('Error:', error);
-      Alert.alert('Error', 'Failed to connect to server');
+      Alert.alert('Error', 'Failed to connect to server2');
     }
   };
 
