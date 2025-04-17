@@ -80,7 +80,7 @@ export default function LoginScreen({ }) {
       console.log("Login Response Data:", data);
       
       if (response.ok) {
-        await AsyncStorage.setItem('userEmail', email);
+        await AsyncStorage.setItem('email', email);
         await AsyncStorage.setItem('userId', data.id.toString());
         await AsyncStorage.setItem('token', data.token);
         

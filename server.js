@@ -27,46 +27,75 @@ db.connect((err) => {
     }
     console.log('Connected to MySQL database.');
 
-    // Create comments table if it doesn't exist
-    const createCommentsTableSQL = `
-        CREATE TABLE IF NOT EXISTS comments (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            post_id INT NOT NULL,
-            user_id INT NOT NULL,
-            text TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-        )
+    // Check if rating column exists and add it if it doesn't
+    const checkColumnSQL = `
+        SELECT COUNT(*) as count 
+        FROM information_schema.columns 
+        WHERE table_schema = DATABASE() 
+        AND table_name = 'explore_posts' 
+        AND column_name = 'rating'
     `;
 
-    db.query(createCommentsTableSQL, (err) => {
+    db.query(checkColumnSQL, (err, results) => {
         if (err) {
-            console.error('Error creating comments table:', err);
+            console.error('Error checking for rating column:', err);
             return;
         }
-        console.log('Comments table created or already exists');
-    });
 
-    // Create explore_posts table if it doesn't exist
-    const createExplorePostsTableSQL = `
-        CREATE TABLE IF NOT EXISTS explore_posts (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            user_id INT NOT NULL,
-            title VARCHAR(255) NOT NULL,
-            description TEXT NOT NULL,
-            images JSON,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-        )
-    `;
+        if (results[0].count === 0) {
+            // Column doesn't exist, add it
+            const addColumnSQL = `
+                ALTER TABLE explore_posts 
+                ADD COLUMN rating INT DEFAULT 0
+            `;
 
-    db.query(createExplorePostsTableSQL, (err) => {
-        if (err) {
-            console.error('Error creating explore_posts table:', err);
-            return;
+            db.query(addColumnSQL, (err) => {
+                if (err) {
+                    console.error('Error adding rating column:', err);
+                    return;
+                }
+                console.log('Rating column added to explore_posts table');
+
+                // Set initial rating to 0 for all existing posts
+                const updateRatingSQL = `
+                    UPDATE explore_posts 
+                    SET rating = 0 
+                    WHERE rating IS NULL
+                `;
+
+                db.query(updateRatingSQL, (err) => {
+                    if (err) {
+                        console.error('Error setting initial ratings:', err);
+                        return;
+                    }
+                    console.log('Initial ratings set to 0 for all existing posts');
+                });
+            });
+        } else {
+            console.log('Rating column already exists in explore_posts table');
         }
-        console.log('Explore posts table created or already exists');
+
+        // Create post_votes table if it doesn't exist
+        const createPostVotesTableSQL = `
+            CREATE TABLE IF NOT EXISTS post_votes (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                post_id INT NOT NULL,
+                user_id INT NOT NULL,
+                vote_type ENUM('up', 'down') NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (post_id) REFERENCES explore_posts(id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                UNIQUE KEY unique_vote (post_id, user_id)
+            )
+        `;
+
+        db.query(createPostVotesTableSQL, (err) => {
+            if (err) {
+                console.error('Error creating post_votes table:', err);
+                return;
+            }
+            console.log('Post votes table created or already exists');
+        });
     });
 });
 
@@ -567,6 +596,139 @@ app.get('/getExplorePosts', async (req, res) => {
   } catch (error) {
     console.error('Error in getExplorePosts:', error);
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Vote on a post
+app.post('/votePost', authenticateToken, async (req, res) => {
+    const { post_id, vote_type } = req.body;
+    const user_id = req.user.id;
+
+    console.log('Vote request received:', { post_id, vote_type, user_id });
+
+    if (!post_id || !vote_type) {
+        console.error('Missing required fields:', { post_id, vote_type });
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    try {
+        // First check if the post exists in explore_posts table
+        const [postCheck] = await db.promise().query(
+            'SELECT id FROM explore_posts WHERE id = ?',
+            [post_id]
+        );
+
+        if (postCheck.length === 0) {
+            console.error('Post not found in explore_posts:', post_id);
+            return res.status(404).json({ error: 'Post not found' });
+        }
+
+        // Check if user has already voted on this post
+        const [existingVote] = await db.promise().query(
+            'SELECT * FROM post_votes WHERE post_id = ? AND user_id = ?',
+            [post_id, user_id]
+        );
+
+        console.log('Existing vote check:', existingVote);
+
+        if (existingVote.length > 0) {
+            // Update existing vote
+            const [result] = await db.promise().query(
+                'UPDATE post_votes SET vote_type = ? WHERE post_id = ? AND user_id = ?',
+                [vote_type, post_id, user_id]
+            );
+            console.log('Updated existing vote:', result);
+        } else {
+            // Insert new vote
+            const [result] = await db.promise().query(
+                'INSERT INTO post_votes (post_id, user_id, vote_type) VALUES (?, ?, ?)',
+                [post_id, user_id, vote_type]
+            );
+            console.log('Inserted new vote:', result);
+        }
+
+        // Calculate new rating
+        const [votes] = await db.promise().query(
+            'SELECT vote_type FROM post_votes WHERE post_id = ?',
+            [post_id]
+        );
+
+        console.log('All votes for post:', votes);
+
+        const upvotes = votes.filter(v => v.vote_type === 'up').length;
+        const totalVotes = votes.length;
+        const newRating = totalVotes > 0 ? Math.round((upvotes / totalVotes) * 100) : 0;
+
+        console.log('Calculated new rating:', { upvotes, totalVotes, newRating });
+
+        // Update explore post rating in real-time
+        const [updateResult] = await db.promise().query(
+            'UPDATE explore_posts SET rating = ? WHERE id = ?',
+            [newRating, post_id]
+        );
+
+        console.log('Updated post rating:', updateResult);
+
+        // Return the new rating to update the UI
+        res.json({ 
+            success: true, 
+            newRating,
+            message: 'Vote processed successfully'
+        });
+    } catch (error) {
+        console.error('Detailed voting error:', {
+            message: error.message,
+            code: error.code,
+            sqlMessage: error.sqlMessage,
+            sqlState: error.sqlState
+        });
+        res.status(500).json({ 
+            error: 'Failed to process vote',
+            details: error.message 
+        });
+    }
+});
+
+// Get User Profile Endpoint
+app.get('/getUserProfile', async (req, res) => {
+  const { email } = req.query;
+
+  console.log('Received profile request for email:', email);
+
+  if (!email) {
+    console.log('No email provided in request');
+    return res.status(400).json({ error: 'Email is required' });
+  }
+
+  try {
+    const sql = `
+      SELECT id, name, email, country, language, gender, profile_image, created_at
+      FROM users
+      WHERE email = ?
+    `;
+
+    db.query(sql, [email], (err, results) => {
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).json({ error: 'Failed to fetch user profile', details: err.message });
+      }
+
+      if (results.length === 0) {
+        console.log('No user found for email:', email);
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const userData = results[0];
+      console.log('Found user data:', { ...userData, password: '[REDACTED]' });
+
+      // Clean up the response data
+      delete userData.password;
+      
+      res.json(userData);
+    });
+  } catch (error) {
+    console.error('Server error:', error);
+    res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 });
 

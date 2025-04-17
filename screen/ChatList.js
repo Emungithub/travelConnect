@@ -29,7 +29,7 @@ const ChatList = () => {
     },
     { 
       id: 2, 
-      name: "John Doe", 
+      name: "Johnson", 
       message: "Hey there! Looking forward to meeting up...", 
       time: "13:20",
       profileImage: require("../assets/explore/1.png"),

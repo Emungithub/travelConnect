@@ -23,63 +23,7 @@ import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 // Categories for filtering
 const categories = ["Recommend", "Stay", "Food", "Attractions"];
-
-const exploreData = [
-  {
-    id: "1",
-    title: "Experience Taman ABC Night Market",
-    description: "Looking for a place to **stretch, relax, and rejuvenate**? 🌸✨ Experience the **tranquility and expert guidance** at **Sense Studio Wangsa Maju**, where wellness meets serenity! 🏡💆‍♂️\n\n🔥 Whether you're a **beginner or an experienced yogi**, there's something for everyone:\n\n✅ **Hatha Yoga** – Perfect for **balance & flexibility** 🧘\n✅ **Vinyasa Flow** – A **dynamic & energizing** workout 🔥\n✅ **Yin Yoga** – Deep **stretching & relaxation** 🌙\n✅ **Aerial Yoga** – Fly high & build **core strength** 🕊️\n\n🌿 **Why Sense Studio Wangsa Maju?**\n🎀 **Cozy ambiance** & skilled trainers! 🎀\n🌸 **Great for beginners & advanced yogis!** 🌸\n\n💬 **Tag your yoga buddies & start your wellness journey today!** 🏞️💖\n\n#SenseStudio #YogaWangsaMaju #MindBodySoul #RelaxAndFlow #BestYogaKL",
-    image: require("../assets/explore/2.png"),
-    user: "test_24",
-    profileImage: require("../assets/explore/solotravel.png"),
-    rating: "90%",
-  },
-  {
-    id: "2",
-    title: "Experience Taman ABC Night Market",
-    description: "Looking for a place to **stretch, relax, and rejuvenate**? 🌸✨ Experience the **tranquility and expert guidance** at **Sense Studio Wangsa Maju**, where wellness meets serenity! 🏡💆‍♂️\n\n🔥 Whether you're a **beginner or an experienced yogi**, there's something for everyone:\n\n✅ **Hatha Yoga** – Perfect for **balance & flexibility** 🧘\n✅ **Vinyasa Flow** – A **dynamic & energizing** workout 🔥\n✅ **Yin Yoga** – Deep **stretching & relaxation** 🌙\n✅ **Aerial Yoga** – Fly high & build **core strength** 🕊️\n\n🌿 **Why Sense Studio Wangsa Maju?**\n🎀 **Cozy ambiance** & skilled trainers! 🎀\n🌸 **Great for beginners & advanced yogis!** 🌸\n\n💬 **Tag your yoga buddies & start your wellness journey today!** 🏞️💖\n\n#SenseStudio #YogaWangsaMaju #MindBodySoul #RelaxAndFlow #BestYogaKL",
-    image: require("../assets/explore/2.png"),
-    user: "test_24",
-    profileImage: require("../assets/explore/solotravel.png"),
-    rating: "90%",
-  },
-  {
-    id: "3",
-    title: "First experience in Sense Studio Wangsa Maju",
-    description: "Looking for a place to **stretch, relax, and rejuvenate**? 🌸✨ Experience the **tranquility and expert guidance** at **Sense Studio Wangsa Maju**, where wellness meets serenity! 🏡💆‍♂️\n\n🔥 Whether you're a **beginner or an experienced yogi**, there's something for everyone:\n\n✅ **Hatha Yoga** – Perfect for **balance & flexibility** 🧘\n✅ **Vinyasa Flow** – A **dynamic & energizing** workout 🔥\n✅ **Yin Yoga** – Deep **stretching & relaxation** 🌙\n✅ **Aerial Yoga** – Fly high & build **core strength** 🕊️\n\n🌿 **Why Sense Studio Wangsa Maju?**\n🎀 **Cozy ambiance** & skilled trainers! 🎀\n🌸 **Great for beginners & advanced yogis!** 🌸\n\n💬 **Tag your yoga buddies & start your wellness journey today!** 🏞️💖\n\n#SenseStudio #YogaWangsaMaju #MindBodySoul #RelaxAndFlow #BestYogaKL",
-    image: require("../assets/explore/1.png"),
-    user: "ella_03",
-    profileImage: require("../assets/explore/solotravel.png"),
-    rating: "100%",
-  },
-  {
-    id: "4",
-    title: "Experience Taman ",
-    description: "Looking for a place to **stretch, relax, and rejuvenate**? 🌸✨ Experience the **tranquility and expert guidance** at **Sense Studio Wangsa Maju**, where wellness meets serenity! 🏡💆‍♂️\n\n🔥 Whether you're a **beginner or an experienced yogi**, there's something for everyone:\n\n✅ **Hatha Yoga** – Perfect for **balance & flexibility** 🧘\n✅ **Vinyasa Flow** – A **dynamic & energizing** workout 🔥\n✅ **Yin Yoga** – Deep **stretching & relaxation** 🌙\n✅ **Aerial Yoga** – Fly high & build **core strength** 🕊️\n\n🌿 **Why Sense Studio Wangsa Maju?**\n🎀 **Cozy ambiance** & skilled trainers! 🎀\n🌸 **Great for beginners & advanced yogis!** 🌸\n\n💬 **Tag your yoga buddies & start your wellness journey today!** 🏞️💖\n\n#SenseStudio #YogaWangsaMaju #MindBodySoul #RelaxAndFlow #BestYogaKL",
-    image: require("../assets/explore/2.png"),
-    user: "john_24",
-    profileImage: require("../assets/explore/solotravel.png"),
-    rating: "90%",
-  },
-  {
-    id: "5",
-    title: "Sense Studio Wangsa Maju",
-    description: "Looking for a place to **stretch, relax, and rejuvenate**? 🌸✨ Experience the **tranquility and expert guidance** at **Sense Studio Wangsa Maju**, where wellness meets serenity! 🏡💆‍♂️\n\n🔥 Whether you're a **beginner or an experienced yogi**, there's something for everyone:\n\n✅ **Hatha Yoga** – Perfect for **balance & flexibility** 🧘\n✅ **Vinyasa Flow** – A **dynamic & energizing** workout 🔥\n✅ **Yin Yoga** – Deep **stretching & relaxation** 🌙\n✅ **Aerial Yoga** – Fly high & build **core strength** 🕊️\n\n🌿 **Why Sense Studio Wangsa Maju?**\n🎀 **Cozy ambiance** & skilled trainers! 🎀\n🌸 **Great for beginners & advanced yogis!** 🌸\n\n💬 **Tag your yoga buddies & start your wellness journey today!** 🏞️💖\n\n#SenseStudio #YogaWangsaMaju #MindBodySoul #RelaxAndFlow #BestYogaKL",
-    image: require("../assets/explore/1.png"),
-    user: "ella_03",
-    profileImage: require("../assets/explore/solotravel.png"),
-    rating: "100%",
-  },
-  {
-    id: "6",
-    title: "Experience Taman ABC Night Market",
-    description: "Looking for a place to **stretch, relax, and rejuvenate**? 🌸✨ Experience the **tranquility and expert guidance** at **Sense Studio Wangsa Maju**, where wellness meets serenity! 🏡💆‍♂️\n\n🔥 Whether you're a **beginner or an experienced yogi**, there's something for everyone:\n\n✅ **Hatha Yoga** – Perfect for **balance & flexibility** 🧘\n✅ **Vinyasa Flow** – A **dynamic & energizing** workout 🔥\n✅ **Yin Yoga** – Deep **stretching & relaxation** 🌙\n✅ **Aerial Yoga** – Fly high & build **core strength** 🕊️\n\n🌿 **Why Sense Studio Wangsa Maju?**\n🎀 **Cozy ambiance** & skilled trainers! 🎀\n🌸 **Great for beginners & advanced yogis!** 🌸\n\n💬 **Tag your yoga buddies & start your wellness journey today!** 🏞️💖\n\n#SenseStudio #YogaWangsaMaju #MindBodySoul #RelaxAndFlow #BestYogaKL",
-    image: require("../assets/explore/2.png"),
-    user: "john_24",
-    profileImage: require("../assets/explore/solotravel.png"),
-    rating: "90%",
-  },
-];
+const priorityCategories = ["All", "Low", "Medium", "High"];
 
 // Add getEmojiFlag function
 const getEmojiFlag = (country) => {
@@ -108,6 +52,61 @@ const ExploreComponent = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [exploreData, setExploreData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [userVotes, setUserVotes] = useState({});
+  const [postRatings, setPostRatings] = useState({});
+
+  const handleVote = async (postId, voteType) => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        Alert.alert('Error', 'Please login to vote');
+        return;
+      }
+
+      console.log('Sending vote request:', { postId, voteType });
+
+      const response = await fetch('http://192.168.35.214:3000/votePost', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          post_id: postId,
+          vote_type: voteType
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error('Vote failed:', data);
+        throw new Error(data.error || data.details || 'Failed to vote');
+      }
+
+      console.log('Vote successful:', data);
+      
+      // Update local state with the new rating
+      setPostRatings(prev => ({
+        ...prev,
+        [postId]: data.newRating
+      }));
+
+      // Update user's vote state
+      setUserVotes(prev => ({
+        ...prev,
+        [postId]: voteType
+      }));
+
+    } catch (error) {
+      console.error('Error voting:', error);
+      Alert.alert(
+        'Error',
+        error.message || 'Failed to vote. Please try again.',
+        [{ text: 'OK' }]
+      );
+    }
+  };
 
   // Fetch explore data from the database
   useFocusEffect(
@@ -120,27 +119,24 @@ const ExploreComponent = () => {
             throw new Error('Failed to fetch explore posts');
           }
           const data = await response.json();
-          console.log('Raw data from server:', data[0]); // Log first post's raw data
+          console.log('Raw data from server:', data);
           
           // Transform the data to match our existing structure
           const formattedData = data.map(post => {
-            // Debug logs
-            console.log('Post ID:', post.id);
-            console.log('Raw images data:', post.images);
-            console.log('Images type:', typeof post.images);
-            console.log('Is images an array?', Array.isArray(post.images));
-            
-            // Handle image processing
+            // Initialize ratings state for each post
+            setPostRatings(prev => ({
+              ...prev,
+              [post.id]: post.rating || 0
+            }));
+
             let mainImage;
             if (Array.isArray(post.images) && post.images.length > 0) {
-              console.log('First image path:', post.images[0]);
               mainImage = { uri: post.images[0].replace(/^file:\/\//, '') };
             } else {
-              console.log('Using default image');
               mainImage = require("../assets/explore/1.png");
             }
 
-            const formattedPost = {
+            return {
               id: post.id.toString(),
               title: post.title,
               description: post.description,
@@ -149,15 +145,11 @@ const ExploreComponent = () => {
               profileImage: post.profile_image ? { uri: post.profile_image } : require("../assets/explore/solotravel.png"),
               country: post.country,
               language: post.language,
-              rating: "90%",
+              rating: post.rating || 0,
               images: Array.isArray(post.images) ? post.images.map(img => ({ uri: img.replace(/^file:\/\//, '') })) : []
             };
-
-            console.log('Formatted post image:', formattedPost.image);
-            return formattedPost;
           });
 
-          console.log("First formatted post:", formattedData[0]);
           setExploreData(formattedData);
         } catch (error) {
           console.error('Error fetching explore data:', error);
@@ -174,7 +166,7 @@ const ExploreComponent = () => {
   // Filter explore data based on search query
   const filteredExploreData = exploreData.filter(item => {
     const searchLower = searchQuery.toLowerCase();
-    return (
+  return (
       item.title.toLowerCase().includes(searchLower) ||
       item.description.toLowerCase().includes(searchLower)
     );
@@ -205,11 +197,11 @@ const ExploreComponent = () => {
             key={category}
             onPress={() => setSelectedCategory(category)}
             style={[
-              styles.categoryButton,
-              selectedCategory === category && styles.categoryButtonActive,
+              styles.answerButton,
+              selectedCategory === category && styles.answerButtonActive,
             ]}
           >
-            <Text style={styles.categoryText}>{category}</Text>
+            <Text style={styles.answers}>{category}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -223,34 +215,45 @@ const ExploreComponent = () => {
           <Text style={styles.emptyText}>No posts found</Text>
         </View>
       ) : (
-        <FlatList
-          key={selectedCategory}
-          numColumns={2}
+      <FlatList
+        key={selectedCategory}
+        numColumns={2}
           data={filteredExploreData}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
             <TouchableOpacity 
               style={styles.card} 
               onPress={() => navigation.navigate("ExploreDetail", { item })}
             >
-              <Image source={item.image} style={styles.image} />
-              <Text style={styles.title}>{item.title}</Text>
-              <View style={styles.userContainer}>
+            <Image source={item.image} style={styles.image} />
+            <Text style={styles.title}>{item.title}</Text>
+            <View style={styles.userContainer}>
                 <View style={styles.profileContainer}>
-                  <Image source={item.profileImage} style={styles.profileImageSmall} />
+              <Image source={item.profileImage} style={styles.profileImageSmall} />
                   <Text style={styles.flagIconSmall}>{getEmojiFlag(item.country)}</Text>
                 </View>
-                <Text style={styles.user}>{item.user}</Text>
-                <View style={styles.ratingContainer}>
-                  <FontAwesome5 name="arrow-up" size={12} color="#32CD32" />
-                  <Text style={styles.rating}>{item.rating}</Text>
-                </View>
+              <Text style={styles.user}>{item.user}</Text>
+              <View style={styles.ratingContainer}>
+                  <TouchableOpacity 
+                    onPress={() => handleVote(item.id, 'up')}
+                    style={[styles.voteButton, userVotes[item.id] === 'up' && styles.voteButtonActive]}
+                  >
+                    <FontAwesome5 name="arrow-up" size={12} color={userVotes[item.id] === 'up' ? "#8A2BE2" : "#32CD32"} />
+                  </TouchableOpacity>
+                  <Text style={styles.rating}>{postRatings[item.id] || item.rating}%</Text>
+                  <TouchableOpacity 
+                    onPress={() => handleVote(item.id, 'down')}
+                    style={[styles.voteButton, userVotes[item.id] === 'down' && styles.voteButtonActive]}
+                  >
+                    <FontAwesome5 name="arrow-down" size={12} color={userVotes[item.id] === 'down' ? "#8A2BE2" : "#FF4500"} />
+                  </TouchableOpacity>
               </View>
-            </TouchableOpacity>
-          )}
-          columnWrapperStyle={styles.columnWrapper}
+            </View>
+          </TouchableOpacity>
+        )}
+        columnWrapperStyle={styles.columnWrapper}
           contentContainerStyle={{ paddingBottom: 5 }}
-        />
+      />
       )}
     </View>
   );
@@ -258,7 +261,7 @@ const ExploreComponent = () => {
 
 const QuestionsComponent = () => {
   const navigation = useNavigation();
-  const [selectedCategory, setSelectedCategory] = useState("Recommend");
+  const [selectedPriority, setSelectedPriority] = useState("High");
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [questionsData, setQuestionsData] = useState([]);
@@ -266,13 +269,13 @@ const QuestionsComponent = () => {
   const [commentText, setCommentText] = useState("");
   const [comments, setComments] = useState({});
 
-  // Filter questions data based on search query
+  // Filter questions data based on search query and priority
   const filteredQuestionsData = questionsData.filter(item => {
     const searchLower = searchQuery.toLowerCase();
-    return (
-      item.title.toLowerCase().includes(searchLower) ||
-      item.description.toLowerCase().includes(searchLower)
-    );
+    const matchesSearch = item.title.toLowerCase().includes(searchLower) ||
+                         item.description.toLowerCase().includes(searchLower);
+    const matchesPriority = selectedPriority === "All" || selectedPriority === item.priority;
+    return matchesSearch && matchesPriority;
   });
 
   const toggleDescription = (id) => {
@@ -447,18 +450,18 @@ const QuestionsComponent = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Category Filters */}
+      {/* Priority Filters */}
       <View style={styles.categoryContainer}>
-        {categories.map((category) => (
+        {priorityCategories.map((priority) => (
           <TouchableOpacity
-            key={category}
-            onPress={() => setSelectedCategory(category)}
+            key={priority}
+            onPress={() => setSelectedPriority(priority)}
             style={[
-              styles.categoryButton,
-              selectedCategory === category && styles.categoryButtonActive,
+              styles.answerButton,
+              selectedPriority === priority && styles.answerButtonActive
             ]}
           >
-            <Text style={styles.categoryText}>{category}</Text>
+            <Text style={styles.answers}>{priority}</Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -467,14 +470,14 @@ const QuestionsComponent = () => {
       {filteredQuestionsData.map((item) => {
         console.log("Rendering question with priority:", item.priority);
         return (
-          <View key={item.id} style={styles.questionCard}>
-            <View style={styles.cardHeader}>
-              <View style={styles.profileContainer}>
+        <View key={item.id} style={styles.questionCard}>
+          <View style={styles.cardHeader}>
+            <View style={styles.profileContainer}>
                 <Image source={{ uri: item.profile_image }} style={styles.profileImageQuestion} />
                 <Text style={styles.flagIcon}>{getEmojiFlag(item.country)}</Text>          
-              </View>
-              <View style={styles.textContainer}>
-                <View style={styles.tagRow}>
+            </View>
+            <View style={styles.textContainer}>
+              <View style={styles.tagRow}>
                   <Text style={styles.user}>{item.name}</Text>
                   {item.priority && (
                     <View style={[
@@ -483,11 +486,11 @@ const QuestionsComponent = () => {
                                       item.priority === "Medium" ? "#FFA500" : "#32CD32" }
                     ]}>
                       <Text style={styles.priorityText}>{item.priority}</Text>
-                    </View>
-                  )}
-                </View>
-                <Text style={styles.questionTitle}>{item.title}</Text>
               </View>
+                  )}
+            </View>
+                <Text style={styles.questionTitle}>{item.title}</Text>
+          </View>
             </View>
             <TouchableOpacity onPress={() => toggleDescription(item.id)}>
               <Text 
@@ -501,36 +504,38 @@ const QuestionsComponent = () => {
                 <Text style={styles.readMore}>... Read more</Text>
               )}
             </TouchableOpacity>
-            <View style={styles.answerContainer}>
-              <TouchableOpacity
-                style={[styles.answerButton, selectedAnswer === item.id && styles.answerButtonActive]}
-                onPress={() => setSelectedAnswer(selectedAnswer === item.id ? null : item.id)}
-              >
-                <FontAwesome5 name="comment" size={14} color="#bbb" />
-                <Text style={styles.answers}>Answer {item.answers || 0}</Text>
-              </TouchableOpacity>
-            </View>
-
+          <View style={styles.answerContainer}>
+            <TouchableOpacity
+              style={[styles.answerButton, selectedAnswer === item.id && styles.answerButtonActive]}
+              onPress={() => setSelectedAnswer(selectedAnswer === item.id ? null : item.id)}
+            >
+                <FontAwesome5 name="comment" size={14} color={selectedAnswer === item.id ? "#FFFFFF" : "#8A2BE2"} />
+                <Text style={[styles.answers, { color: selectedAnswer === item.id ? "#FFFFFF" : "#8A2BE2" }]}>
+                  Answer {item.answers || 0}
+                </Text>
+            </TouchableOpacity>
+                    </View>
+                    
             {/* Comment Section */}
             {selectedAnswer === item.id && (
               <View style={styles.commentSection}>
                 {/* Comment Input */}
                 <View style={styles.commentInputContainer}>
-                  <TextInput
+          <TextInput
                     style={styles.commentInput}
                     placeholder="Write your answer..."
-                    placeholderTextColor="#bbb"
+            placeholderTextColor="#bbb"
                     value={commentText}
                     onChangeText={setCommentText}
                     multiline
                   />
-                  <TouchableOpacity 
+          <TouchableOpacity
                     style={styles.submitButton}
                     onPress={() => handleCommentSubmit(item.id)}
                   >
                     <Text style={styles.submitButtonText}>Post</Text>
-                  </TouchableOpacity>
-                </View>
+          </TouchableOpacity>
+      </View>
 
                 {/* Comments List */}
                 {(comments[item.id] || []).map(comment => (
@@ -553,8 +558,8 @@ const QuestionsComponent = () => {
                       </View>
                     </View>
                     <Text style={styles.commentText}>{comment.text}</Text>
-                  </View>
-                ))}
+        </View>
+      ))}
               </View>
             )}
           </View>
@@ -686,21 +691,28 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 16,
+    paddingHorizontal: 5,
+    gap: 8,
   },
-  categoryButton: {
-    paddingVertical: 5,
-    paddingHorizontal: 15,
-    borderRadius: 10,
-    backgroundColor: "#333",
+  answerButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: "#8A2BE2",
+    minWidth: 80,
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 5,
   },
-  categoryButtonActive: {
+  answerButtonActive: {
     backgroundColor: "#8A2BE2",
   },
-  categoryText: {
-    color: "#fff",
-    fontSize: 14,
+  answers: {
+    color: "#FFFFFF",
+    fontSize: 12,
+    fontWeight: "bold",
   },
   card: {
     width: "49%",
@@ -773,11 +785,20 @@ const styles = StyleSheet.create({
   ratingContainer: {
     flexDirection: "row",
     alignItems: "center",
+    gap: 4,
+  },
+  voteButton: {
+    padding: 4,
+    borderRadius: 4,
+  },
+  voteButtonActive: {
+    backgroundColor: '#333',
   },
   rating: {
     color: "#32CD32",
     fontSize: 12,
-    marginLeft: 5,
+    minWidth: 30,
+    textAlign: 'center',
   },
   questionCard: {
     backgroundColor: "#1a1a1a",
@@ -830,27 +851,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-end",
-  },
-  answerButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-end",
-    marginTop: 8,
-    backgroundColor: "#435345",
-    paddingVertical: 5,
-    paddingHorizontal: 15,
-    borderRadius: 10,
-    backgroundColor: "#333",
-    borderWidth: 1,
-    borderColor: "#8A2BE2",
-  },
-  answerButtonActive: {
-    backgroundColor: "#8A2BE2",
-  },
-  answers: {
-    color: "#FFFFFF",
-    fontSize: 14,
-    marginLeft: 5,
   },
   translateButton: {
     paddingTop: 5,
@@ -945,7 +945,7 @@ const styles = StyleSheet.create({
     gap: 5, // Add space between elements
     padding: 5,
   },
-
+  
   likesText: {
     color: "white",
     fontSize: 12,
