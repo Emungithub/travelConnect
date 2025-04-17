@@ -180,27 +180,66 @@ If there's any mention of immediate need or current location, prioritize that ov
   
   const handleSubmit = async () => {
     if (!title || !description) {
-        Alert.alert('Error', 'Please fill in all fields');
-        return;
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
     }
 
     try {
-        // Get userId from AsyncStorage
-        const storedUserId = await AsyncStorage.getItem('userId');
-        if (!storedUserId) {
-            Alert.alert('Error', 'Please login to post');
-            return;
-        }
+      const storedUserId = await AsyncStorage.getItem('userId');
+      const token = await AsyncStorage.getItem('token');
+      
+      if (!storedUserId || !token) {
+        Alert.alert('Error', 'Please login to post');
+        return;
+      }
 
-        // Analyze priority level
+      if (route.params?.bigTit === "New Post") {
+        // No need to filter images as they're already stored as URIs
+        const postData = {
+          title,
+          description,
+          images: images, // Direct array of URIs
+          user_id: Number(storedUserId)
+        };
+
+        console.log("Sending explore post data:", postData);
+
+        try {
+          const response = await fetch('http://192.168.35.214:3000/addExplorePost', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(postData)
+          });
+
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+
+          const data = await response.json();
+          console.log("Explore Post Response:", data);
+
+          setShowSuccessModal(true);
+          setTitle('');
+          setDescription('');
+          setImages([]);
+        } catch (fetchError) {
+          console.error('Fetch error 1:', fetchError);
+          console.log("Fetch error 2:", fetchError.message);
+          console.log("Fetch error 3:", fetchError.status);
+          Alert.alert('Error', 'Network error. Please check your connection.');
+        }
+      } else {
+        // Handle Ask button - analyze priority and show modal
         const analyzedPriority = await analyzePriorityLevel(title, description);
         setPriorityLevel(analyzedPriority);
-        
-        // Show priority modal instead of directly submitting
         setShowPriorityModal(true);
+      }
     } catch (error) {
-        console.error('❌ Error analyzing priority:', error);
-        Alert.alert('Error', 'Failed to analyze priority');
+      console.error('❌ Error:', error);
+      Alert.alert('Error', 'Failed to connect to server');
     }
   };
 
@@ -293,7 +332,9 @@ If there's any mention of immediate need or current location, prioritize that ov
       });
 
       if (!result.canceled) {
-        setImages([...images, result.assets[0].uri]);
+        const newImageUri = result.assets[0].uri;
+        console.log("Selected image URI:", newImageUri);
+        setImages(prevImages => [...prevImages, newImageUri]);
       }
     } catch (error) {
       console.error('Error picking image:', error);

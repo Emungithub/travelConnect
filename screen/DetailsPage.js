@@ -1,8 +1,11 @@
 import React, { useState } from "react";
 import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, TextInput, Modal, KeyboardAvoidingView, Platform } from "react-native";
 import { FontAwesome5, MaterialIcons, Ionicons } from "@expo/vector-icons";
+import { useNavigation, useRoute } from "@react-navigation/native";
 
-const DetailsPage = ({ route }) => {
+const DetailsPage = () => {
+    const navigation = useNavigation();
+    const route = useRoute();
     const { user } = route.params;
     const [modalVisible, setModalVisible] = useState(false);
     const [dealModalVisible, setDealModalVisible] = useState(false);
@@ -10,37 +13,76 @@ const DetailsPage = ({ route }) => {
     const [price, setPrice] = useState(4900);
     const [tourName, setTourName] = useState("");
     const [tourLocation, setTourLocation] = useState("");
+    const [isConnected, setIsConnected] = useState(false);
+
+    const handleConnect = () => {
+        setIsConnected(true);
+        // Here you would typically make an API call to establish the connection
+        // For now, we'll just simulate it with the state change
+    };
+
+    const handleStartChat = () => {
+        // Navigate to chat screen with the user data
+        navigation.navigate("ChatScreen", { 
+            chatId: user.id,
+            userName: user.name,
+            profileImage: user.profileImage,
+            flag: user.tag === "China" ? require("../assets/flag/china.png") : 
+                 user.tag === "Korean" ? require("../assets/flag/korea.png") : null
+        });
+    };
 
     return (
         <View style={styles.container}>
-            <ScrollView contentContainerStyle={styles.scrollContent}>
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => navigation.goBack()}>
+                    <FontAwesome5 name="arrow-left" size={20} color="white" />
+                </TouchableOpacity>
+                <Text style={styles.headerTitle}>Profile Details</Text>
+            </View>
+
+            <ScrollView style={styles.content}>
                 <View style={styles.profileSection}>
-                    <Image source={user.profileImage} style={styles.largeProfileImage} />
+                    <View style={styles.profileImageContainer}>
+                        <Image source={user.profileImage} style={styles.profileImage} />
+                        <Image
+                            source={
+                                user.tag === "China"
+                                    ? require("../assets/flag/china.png")
+                                    : user.tag === "Korean"
+                                        ? require("../assets/flag/korea.png")
+                                        : null
+                            }
+                            style={styles.flagIcon}
+                        />
+                    </View>
                     <Text style={styles.name}>{user.name}</Text>
                     <Text style={styles.location}>{user.location}</Text>
-                    <Text style={styles.bio}>{user.bio}</Text>
                 </View>
 
-                <View style={styles.tagsContainer}>
-                    {user.tags.map((tag, index) => (
-                        <Text key={index} style={styles.tag}>{tag}</Text>
-                    ))}
+                <View style={styles.bioSection}>
+                    <Text style={styles.sectionTitle}>About</Text>
+                    <Text style={styles.bioText}>{user.bio}</Text>
                 </View>
 
-                {/* Chat Messages */}
-                <View style={styles.chatContainer}>
-                    <View style={styles.userMessage}>
-                        <Text style={styles.userText}>Hi, I am Ella. Can you speak English? What cultural customs should visitors be aware of when visiting Kuala Lumpur?</Text>
-                    </View>
-                    <View style={styles.replyMessage}>
-                        <Text style={styles.replyText}>Hi, I am Eemun. Yes, I can communicate in English.</Text>
-                    </View>
-                    <View style={styles.replyMessage}>
-                        <Text style={styles.replyText}>
-                            I live in Setapak for 21 years. I would like to say that our culture here is very diverse and we are very understanding people...
-                        </Text>
+                <View style={styles.tagsSection}>
+                    <Text style={styles.sectionTitle}>Tags</Text>
+                    <View style={styles.tagsContainer}>
+                        {user.tags.map((tag, index) => (
+                            <Text key={index} style={styles.tag}>{tag}</Text>
+                        ))}
                     </View>
                 </View>
+
+                {!isConnected ? (
+                    <TouchableOpacity style={styles.connectButton} onPress={handleConnect}>
+                        <Text style={styles.buttonText}>Connect</Text>
+                    </TouchableOpacity>
+                ) : (
+                    <TouchableOpacity style={styles.chatButton} onPress={handleStartChat}>
+                        <Text style={styles.buttonText}>Start Chat</Text>
+                    </TouchableOpacity>
+                )}
             </ScrollView>
 
             {/* Message Input Section */}
@@ -122,27 +164,112 @@ const DetailsPage = ({ route }) => {
                     </KeyboardAvoidingView>
                 </View>
             </Modal>
-
-            
         </View>
     );
 };
 
-export default DetailsPage;
-
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: "#000" },
-    scrollContent: { flexGrow: 1, padding: 20 },
-    profileSection: { alignItems: "center", marginBottom: 20 },
-    largeProfileImage: { width: 100, height: 100, borderRadius: 50, marginBottom: 10 },
-    name: { color: "white", fontSize: 18, fontWeight: "bold" },
-    location: { color: "gray", fontSize: 14 },
-    bio: { color: "white", marginTop: 10, textAlign: "center" },
-
-    chatContainer: { paddingHorizontal: 15, marginTop: 10 },
-    userMessage: { backgroundColor: "#8A2BE2", padding: 10, borderRadius: 10, alignSelf: "flex-end", maxWidth: "70%", marginBottom: 5 },
-    replyMessage: { backgroundColor: "#555", padding: 10, borderRadius: 10, alignSelf: "flex-start", maxWidth: "70%", marginBottom: 5 },
-
+    container: {
+        flex: 1,
+        backgroundColor: "#000",
+    },
+    header: {
+        flexDirection: "row",
+        alignItems: "center",
+        padding: 16,
+        paddingTop: 40,
+        marginBottom: 10,
+    },
+    headerTitle: {
+        color: "white",
+        fontSize: 20,
+        fontWeight: "bold",
+        flex: 1,
+        textAlign: "center",
+    },
+    content: {
+        flex: 1,
+        padding: 16,
+    },
+    profileSection: {
+        alignItems: "center",
+        marginBottom: 24,
+    },
+    profileImageContainer: {
+        position: "relative",
+        marginBottom: 12,
+    },
+    profileImage: {
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+    },
+    flagIcon: {
+        width: 24,
+        height: 24,
+        position: "absolute",
+        bottom: 0,
+        right: 0,
+        borderRadius: 12,
+    },
+    name: {
+        color: "white",
+        fontSize: 24,
+        fontWeight: "bold",
+        marginBottom: 4,
+    },
+    location: {
+        color: "gray",
+        fontSize: 16,
+    },
+    bioSection: {
+        marginBottom: 24,
+    },
+    sectionTitle: {
+        color: "white",
+        fontSize: 18,
+        fontWeight: "bold",
+        marginBottom: 12,
+    },
+    bioText: {
+        color: "white",
+        fontSize: 16,
+        lineHeight: 24,
+    },
+    tagsSection: {
+        marginBottom: 24,
+    },
+    tagsContainer: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+    },
+    tag: {
+        backgroundColor: "#444",
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 16,
+        color: "white",
+        margin: 4,
+    },
+    connectButton: {
+        backgroundColor: "#8A2BE2",
+        paddingVertical: 16,
+        borderRadius: 25,
+        alignItems: "center",
+        marginBottom: 16,
+    },
+    chatButton: {
+        backgroundColor: "#4CAF50",
+        paddingVertical: 16,
+        borderRadius: 25,
+        alignItems: "center",
+        marginBottom: 16,
+    },
+    buttonText: {
+        color: "white",
+        fontSize: 18,
+        fontWeight: "bold",
+    },
     inputContainer: {
         flexDirection: "row",
         alignItems: "center",
@@ -163,9 +290,6 @@ const styles = StyleSheet.create({
         backgroundColor: "#333",
         borderRadius: 20,
         marginRight: 10,
-    },
-    icon: {
-        padding: 8,
     },
     bottomModalOverlay: {
         flex: 1,
@@ -199,4 +323,18 @@ const styles = StyleSheet.create({
     inputField: { backgroundColor: "#333", color: "white", padding: 10, borderRadius: 5, width: "100%", marginBottom: 10 },
     makeDealButton: { backgroundColor: "#8A2BE2", padding: 12, borderRadius: 10, alignItems: "center", width: "100%" },
     makeDealText: { color: "white", fontSize: 16, fontWeight: "bold" },
+    dateRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: 10,
+    },
+    dateButton: {
+        backgroundColor: "#8A2BE2",
+        padding: 10,
+        borderRadius: 5,
+        marginRight: 10,
+    },
+    dateText: { color: "white", fontSize: 16 },
 });
+
+export default DetailsPage;

@@ -16,37 +16,38 @@ const ChatList = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
   const chatData = [
-    { id: 1, name: "Eemun", message: "I would like to schedule a time for you to take...", time: "14:47" },
-    { id: 2, name: "Eemun", message: "I would like to schedule a time for you to take...", time: "14:47" },
-    { id: 3, name: "Eemun", message: "I would like to schedule a time for you to take...", time: "14:47" },
-    { id: 4, name: "Eemun", message: "I would like to schedule a time for you to take...", time: "14:47" },
-    { id: 5, name: "Eemun", message: "I would like to schedule a time for you to take...", time: "14:47" },
+    { 
+      id: 1, 
+      name: "Eemun", 
+      message: "I would like to schedule a time for you to take...", 
+      time: "14:47",
+      profileImage: require("../assets/explore/1.png"),
+      flag: "china",
+      location: "Kuala Lumpur, Malaysia",
+      bio: "I am Ee Mun from Malaysia, I would like to make friends and share the insights of Malaysia...",
+      tags: ["Cancer", "Blood O", "INFJ", "Japan", "Software Engineer", "Malaysia", "Secret"],
+    },
+    { 
+      id: 2, 
+      name: "John Doe", 
+      message: "Hey there! Looking forward to meeting up...", 
+      time: "13:20",
+      profileImage: require("../assets/explore/1.png"),
+      flag: "korea",
+      location: "Penang, Malaysia",
+      bio: "Hey there! I'm John. I love meeting new people and exploring different cultures.",
+      tags: ["Leo", "A+", "ENTP", "Gaming", "Digital Nomad", "Adventure"],
+    },
   ];
 
   return (
     <View style={styles.container}>
       {/* Header */}
-      <View style={styles.headerContainer}>
-        <Text style={styles.headerTitle}>Travel Connect</Text>
-        <TouchableOpacity>
-          <Text style={styles.addPeople}>Add people</Text>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <FontAwesome5 name="arrow-left" size={20} color="white" />
         </TouchableOpacity>
-      </View>
-      
-      {/* Top Services */}
-      <View style={styles.serviceContainer}>
-        <TouchableOpacity style={styles.serviceButton}>
-          <FontAwesome5 name="concierge-bell" size={20} color="white" />
-          <Text style={styles.serviceText}>All Services</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.serviceButton}>
-          <FontAwesome5 name="language" size={20} color="white" />
-          <Text style={styles.serviceText}>Translate</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.serviceButton}>
-          <FontAwesome5 name="question-circle" size={20} color="white" />
-          <Text style={styles.serviceText}>Ask Travel</Text>
-        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Chat</Text>
       </View>
       
       {/* Search Bar */}
@@ -63,26 +64,53 @@ const ChatList = () => {
       {/* Chat List */}
       <ScrollView>
         {chatData.map((chat) => (
-          <View key={chat.id} style={styles.chatItem}>
+          <TouchableOpacity 
+            key={chat.id} 
+            style={styles.chatItem}
+            onPress={() => navigation.navigate("DetailsPage", { 
+              user: {
+                name: chat.name,
+                profileImage: chat.profileImage,
+                location: chat.location,
+                bio: chat.bio,
+                tags: chat.tags
+              }
+            })}
+          >
             <View style={styles.chatLeft}>
               <View style={styles.profileContainer}>
-                <Image source={require("../assets/explore/1.png")} style={styles.profileImage} />
-                <Image source={require("../assets/flag/china.png")} style={styles.flagIcon} />
+                <Image source={chat.profileImage} style={styles.profileImage} />
+                <Image 
+                  source={
+                    chat.flag === "china" 
+                      ? require("../assets/flag/china.png")
+                      : require("../assets/flag/korea.png")
+                  } 
+                  style={styles.flagIcon} 
+                />
               </View>
               <View>
                 <Text style={styles.chatName}>{chat.name}</Text>
-                <Text style={styles.chatMessage}>{chat.message}</Text>
+                <Text style={styles.chatMessage} numberOfLines={1} ellipsizeMode="tail">
+                  {chat.message}
+                </Text>
               </View>
             </View>
             <Text style={styles.chatTime}>{chat.time}</Text>
-          </View>
+          </TouchableOpacity>
         ))}
       </ScrollView>
+
+      {/* Add New Chat Button */}
+      <TouchableOpacity 
+        style={styles.newChatButton}
+        onPress={() => navigation.navigate("Connect")}
+      >
+        <FontAwesome5 name="plus" size={20} color="white" />
+      </TouchableOpacity>
     </View>
   );
 };
-export default ChatList;
-
 
 const styles = StyleSheet.create({
   container: {
@@ -90,38 +118,19 @@ const styles = StyleSheet.create({
     backgroundColor: "#000",
     padding: 16,
   },
-  headerContainer: {
+  header: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 10,
+    justifyContent: "center",
+    marginBottom: 20,
+    paddingTop: 40,
   },
   headerTitle: {
     color: "white",
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "bold",
-  },
-  addPeople: {
-    color: "#8A2BE2",
-    fontSize: 14,
-  },
-  serviceContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 10,
-  },
-  serviceButton: {
-    alignItems: "center",
-    padding: 10,
-    backgroundColor: "#8A2BE2",
-    borderRadius: 10,
     flex: 1,
-    marginHorizontal: 5,
-  },
-  serviceText: {
-    color: "white",
-    fontSize: 12,
-    marginTop: 5,
+    textAlign: "center",
   },
   searchContainer: {
     backgroundColor: "#333",
@@ -139,16 +148,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#1a1a1a",
     padding: 12,
+    paddingVertical: 12,
     borderRadius: 10,
-    marginBottom: 10,
+    marginBottom: 8,
   },
   chatLeft: {
     flexDirection: "row",
     alignItems: "center",
+    flex: 1,
   },
   profileContainer: {
     position: "relative",
-    marginRight: 10,
+    marginRight: 12,
   },
   profileImage: {
     width: 40,
@@ -159,23 +170,47 @@ const styles = StyleSheet.create({
     width: 15,
     height: 15,
     position: "absolute",
-    bottom: 0,
-    left: 0,
+    bottom: -2,
+    left: -2,
     borderRadius: 7.5,
   },
   chatName: {
     color: "white",
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "bold",
+    marginBottom: 2,
   },
   chatMessage: {
     color: "#bbb",
-    fontSize: 14,
+    fontSize: 13,
+    maxWidth: '85%',
   },
   chatTime: {
     color: "#bbb",
     fontSize: 12,
+    marginLeft: 8,
+  },
+  newChatButton: {
+    position: 'absolute',
+    right: 20,
+    bottom: 20,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "#8A2BE2",
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
 });
+
+export default ChatList;
 
 

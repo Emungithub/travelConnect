@@ -11,7 +11,7 @@ const popularCountries = [
   { name: 'China', flag: '🇨🇳' },
   { name: 'Japan', flag: '🇯🇵' },
   { name: 'Korea', flag: '🇰🇷' },
-  { name: 'France', flag: '🇫🇷' },
+  { name: 'Malaysia', flag: '🇲🇾' },
   { name: 'Germany', flag: '🇩🇪' },
   { name: 'Italy', flag: '🇮🇹' },
   { name: 'Spain', flag: '🇪🇸' },

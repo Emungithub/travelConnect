@@ -125,11 +125,28 @@ app.get('/profile', authenticateToken, (req, res) => {
 // Token Authentication Middleware
 // ==============================
 function authenticateToken(req, res, next) {
-    const token = req.header('Authorization')?.split(' ')[1];
-    if (!token) return res.status(401).json({ error: 'Access denied' });
+    const authHeader = req.headers['authorization'];
+    console.log('Auth Header:', authHeader);
+    
+    if (!authHeader) {
+        console.error('No authorization header found');
+        return res.status(401).json({ error: 'No authorization header found' });
+    }
+
+    const token = authHeader.split(' ')[1];
+    console.log('Extracted Token:', token);
+
+    if (!token) {
+        console.error('No token found in authorization header');
+        return res.status(401).json({ error: 'No token found in authorization header' });
+    }
 
     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-        if (err) return res.status(403).json({ error: 'Invalid token' });
+        if (err) {
+            console.error('Token verification failed:', err);
+            return res.status(403).json({ error: 'Invalid token' });
+        }
+        console.log('Token verified successfully. User:', user);
         req.user = user;
         next();
     });
@@ -293,12 +310,27 @@ app.post('/saveUserData', (req, res) => {
 
 // Add Comment Endpoint
 app.post('/addComment', authenticateToken, (req, res) => {
-    const { post_id, text } = req.body;
-    const user_id = req.user.id; // Get user_id from the authenticated token
+    console.log('Received comment request:', {
+        user: req.user,
+        body: req.body
+    });
 
+    // Check if user is authenticated
+    if (!req.user || !req.user.id) {
+        console.error('Authentication error: No user ID found in token');
+        return res.status(401).json({ error: 'Authentication failed. Please login again.' });
+    }
+
+    const { post_id, text } = req.body;
+    const user_id = req.user.id;
+
+    // Validate required fields
     if (!post_id || !text) {
+        console.error('Missing required fields:', { post_id, text });
         return res.status(400).json({ error: 'Post ID and comment text are required.' });
     }
+
+    console.log('Adding comment with data:', { post_id, user_id, text });
 
     const sql = `
         INSERT INTO comments (post_id, user_id, text)
@@ -323,6 +355,11 @@ app.post('/addComment', authenticateToken, (req, res) => {
             if (err) {
                 console.error('❌ Error fetching comment:', err);
                 return res.status(500).json({ error: 'Failed to fetch comment details.' });
+            }
+
+            if (!results || results.length === 0) {
+                console.error('❌ No comment found after insertion');
+                return res.status(500).json({ error: 'Failed to retrieve saved comment.' });
             }
 
             console.log('✅ Comment saved successfully:', results[0]);
@@ -355,7 +392,7 @@ app.get('/getComments/:postId', (req, res) => {
 });
 
 // Add Post with Images Endpoint
-app.post('/addPostWithImages', authenticateToken, (req, res) => {
+app.post('/addImagesPost', (req, res) => {
     const { title, description, images, priority } = req.body;
     const user_id = req.user.id; // Get user_id from the authenticated token
 
@@ -389,6 +426,75 @@ app.post('/addPostWithImages', authenticateToken, (req, res) => {
             postId: result.insertId
         });
     });
+});
+
+// Add explore post with images
+app.post('/addExplorePost', authenticateToken, async (req, res) => {
+  const { title, description, images } = req.body;
+  const user_id = req.user.id; // Get user_id from the authenticated token
+
+  console.log("Received explore post data:", { title, description, images, user_id });
+
+  if (!title || !description) {
+    return res.status(400).json({ error: 'Title and description are required' });
+  }
+
+  try {
+    // Convert images array to JSON string for storage
+    const imagesJson = JSON.stringify(images || []);
+
+    const query = `
+      INSERT INTO explore_posts (user_id, title, description, images)
+      VALUES (?, ?, ?, ?)
+    `;
+
+    db.query(query, [user_id, title, description, imagesJson], (error, results) => {
+      if (error) {
+        console.error('Error saving explore post:', error);
+        return res.status(500).json({ error: 'Failed to save post' });
+      }
+
+      console.log('Explore post saved successfully:', results);
+      res.json({ 
+        message: 'Post saved successfully',
+        postId: results.insertId
+      });
+    });
+  } catch (error) {
+    console.error('Error in addExplorePost:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Add endpoint to get explore posts
+app.get('/getExplorePosts', async (req, res) => {
+  try {
+    const query = `
+      SELECT ep.*, u.name, u.profile_image, u.country
+      FROM explore_posts ep
+      JOIN users u ON ep.user_id = u.id
+      ORDER BY ep.created_at DESC
+    `;
+
+    db.query(query, (error, results) => {
+      if (error) {
+        console.error('Error fetching explore posts:', error);
+        return res.status(500).json({ error: 'Failed to fetch posts' });
+      }
+
+      // Parse the JSON string of images back to an array for each post
+      const postsWithParsedImages = results.map(post => ({
+        ...post,
+        images: JSON.parse(post.images || '[]')
+      }));
+
+      console.log('Explore posts fetched successfully');
+      res.json(postsWithParsedImages);
+    });
+  } catch (error) {
+    console.error('Error in getExplorePosts:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

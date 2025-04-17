@@ -1,14 +1,37 @@
 import React from "react";
-import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
+import { View, Text, Image, TouchableOpacity, ScrollView, StyleSheet, Alert } from "react-native";
 import { FontAwesome5, Ionicons } from "@expo/vector-icons";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
 
 const Profile = () => {
+  const navigation = useNavigation();
+
+  const handleLogout = async () => {
+    try {
+      // Clear all stored user data
+      await AsyncStorage.multiRemove(['token', 'user_id', 'email']);
+      
+      // Navigate to login screen and reset the navigation stack
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+      Alert.alert('Error', 'Failed to logout. Please try again.');
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* Header Bar */}
       <View style={styles.headerBar}>
         <Text style={styles.time}>  </Text>
         <View style={styles.iconGroup}>
+          <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+            <FontAwesome5 name="sign-out-alt" size={20} color="white" style={styles.icon} />
+          </TouchableOpacity>
           <FontAwesome5 name="cog" size={20} color="white" style={styles.icon} />
         </View>
       </View>
@@ -49,29 +72,6 @@ const Profile = () => {
             <Text style={styles.statLabel}>Visitors</Text>
           </View>
         </View>
-
-        {/* VIP Features Card */}
-        <View style={styles.vipCard}>
-          <Text style={styles.vipTitle}>VIP Features</Text>
-          <View style={styles.vipRow}>
-            <Text style={styles.vipFeature}>Unlimited Translations</Text>
-            <Text style={styles.vipFree}>5 times/day</Text>
-            <Text style={styles.vipVIP}>Unlimited</Text>
-          </View>
-          <View style={styles.vipRow}>
-            <Text style={styles.vipFeature}>Unlock Visitors page</Text>
-            <Text style={styles.vipFree}>-</Text>
-            <Text style={styles.vipVIP}>✓</Text>
-          </View>
-          <View style={styles.vipRow}>
-            <Text style={styles.vipFeature}>Unlock Unlimited Chatgpt </Text>
-            <Text style={styles.vipFree}>-</Text>
-            <Text style={styles.vipVIP}>✓</Text>
-          </View>
-          <TouchableOpacity style={styles.vipButton}>
-            <Text style={styles.vipButtonText}>See all VIP Features</Text>
-          </TouchableOpacity>
-        </View>
       </ScrollView>
     </View>
   );
@@ -83,6 +83,7 @@ const styles = StyleSheet.create({
   time: { color: "white", fontSize: 16 },
   iconGroup: { flexDirection: "row" },
   icon: { marginRight: 10 },
+  logoutButton: { marginRight: 10 },
   profileSummary: { flexDirection: "row", alignItems: "center", padding: 15, backgroundColor: "#222", borderRadius: 10, margin: 10 },
   profilePic: { width: 50, height: 50, borderRadius: 25, marginRight: 10 },
   profileTextContainer: { flex: 1 },

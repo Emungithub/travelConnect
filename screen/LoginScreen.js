@@ -1,5 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet } from "react-native";
+import { 
+  View, 
+  Text, 
+  TextInput, 
+  TouchableOpacity, 
+  Image, 
+  StyleSheet, 
+  KeyboardAvoidingView, 
+  Platform,
+  ScrollView,
+  Keyboard,
+  TouchableWithoutFeedback
+} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Alert } from 'react-native';
 
@@ -12,9 +24,8 @@ export default function LoginScreen({ }) {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLogin, setIsLogin] = useState(true); // State to toggle between login and register
+  const [isLogin, setIsLogin] = useState(true);
 
-  // Check for stored user ID on component mount
   useEffect(() => {
     const checkUserLogin = async () => {
       const userId = await AsyncStorage.getItem('userId');
@@ -44,7 +55,6 @@ export default function LoginScreen({ }) {
 
       if (response.ok) {
         Alert.alert('Success', 'Registration successful!');
-        // Store email after successful login
         console.log("🧠 Registered user ID:", data.id.toString());
 
         await AsyncStorage.setItem('userEmail', data.email);
@@ -57,8 +67,7 @@ export default function LoginScreen({ }) {
       Alert.alert('Error', 'Failed to connect to server.');
     }
   };
-  //http://10.0.2.2:3000/login
-  //http://172.20.10.3:3000
+
   const handleLogin = async () => {
     try {
       const response = await fetch('http://192.168.35.214:3000/login', {
@@ -71,12 +80,10 @@ export default function LoginScreen({ }) {
       console.log("Login Response Data:", data);
       
       if (response.ok) {
-        // Store authentication data
         await AsyncStorage.setItem('userEmail', email);
         await AsyncStorage.setItem('userId', data.id.toString());
         await AsyncStorage.setItem('token', data.token);
         
-        // Verify token was stored
         const storedToken = await AsyncStorage.getItem('token');
         console.log("Stored Token:", storedToken);
         
@@ -91,87 +98,84 @@ export default function LoginScreen({ }) {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await AsyncStorage.removeItem('userEmail');
-      await AsyncStorage.removeItem('userId');
-      await AsyncStorage.removeItem('token');
-      navigation.navigate('Login');
-    } catch (error) {
-      console.error('Error logging out:', error);
-    }
-  };
-
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.container}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Logo */}
+          <Image source={require("../assets/travelConnectLogo.png")} style={styles.logo} />
 
-      {/* Logo */}
-      <Image source={require("../assets/travelConnectLogo.png")} style={styles.logo} />
-
-      {/* Title */}
-      <Text style={styles.title}>
-        <Text style={styles.purpleText}>Travel</Text>Connect
-      </Text>
-      <Text style={styles.subtitle}>With Locals</Text>
-
-      {/* Description */}
-      <Text style={styles.description}>Connect with locals, explore like never before.</Text>
-      <Text>Sign in with Google</Text>
-      {/* <GoogleSigninButton
-              size={GoogleSigninButton.Size.Wide}
-              color={GoogleSigninButton.Color.Dark}
-            /> */}
-
-      <Text style={styles.loginText}>Log in or sign up</Text>
-
-      <TextInput
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        style={styles.input}
-        placeholderTextColor="#A3A3A3"  // Light gray for better visibility
-      />
-
-      <TextInput
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        style={styles.input}
-        placeholderTextColor="#A3A3A3"  // Light gray for better visibility
-      />
-
-
-      {isLogin ? (
-        <>
-          <TouchableOpacity onPress={handleLogin} style={styles.button}>
-            <Text style={styles.buttonText}>Login</Text>
-          </TouchableOpacity>
-          <Text style={styles.switchText}>
-            Don't have an account?{" "}
-            <Text style={styles.linkText} onPress={() => setIsLogin(false)}>Sign up now</Text>
+          {/* Title */}
+          <Text style={styles.title}>
+            <Text style={styles.purpleText}>Travel</Text>Connect
           </Text>
-        </>
-      ) : (
-        <>
-          <TouchableOpacity onPress={handleRegister} style={styles.button}>
-            <Text style={styles.buttonText}>Register</Text>
-          </TouchableOpacity>
-          <Text style={styles.switchText}>
-            Already have an account?{" "}
-            <Text style={styles.linkText} onPress={() => setIsLogin(true)}>Go to login</Text>
+          <Text style={styles.subtitle}>With Locals</Text>
+
+          {/* Description */}
+          <Text style={styles.description}>Connect with locals, explore like never before.</Text>
+          <Text style={styles.googleText}>Sign in with Google</Text>
+
+          <Text style={styles.loginText}>Log in or sign up</Text>
+
+          <View style={styles.inputContainer}>
+            <TextInput
+              placeholder="Email"
+              value={email}
+              onChangeText={setEmail}
+              style={styles.input}
+              placeholderTextColor="#A3A3A3"
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+
+            <TextInput
+              placeholder="Password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              style={styles.input}
+              placeholderTextColor="#A3A3A3"
+            />
+
+            {isLogin ? (
+              <>
+                <TouchableOpacity onPress={handleLogin} style={styles.button}>
+                  <Text style={styles.buttonText}>Login</Text>
+                </TouchableOpacity>
+                <Text style={styles.switchText}>
+                  Don't have an account?{" "}
+                  <Text style={styles.linkText} onPress={() => setIsLogin(false)}>Sign up now</Text>
+                </Text>
+              </>
+            ) : (
+              <>
+                <TouchableOpacity onPress={handleRegister} style={styles.button}>
+                  <Text style={styles.buttonText}>Register</Text>
+                </TouchableOpacity>
+                <Text style={styles.switchText}>
+                  Already have an account?{" "}
+                  <Text style={styles.linkText} onPress={() => setIsLogin(true)}>Go to login</Text>
+                </Text>
+              </>
+            )}
+          </View>
+
+          {/* Terms */}
+          <Text style={styles.termsText}>
+            By continuing, you agree to our{" "}
+            <Text style={styles.linkText}>Terms of Service</Text> and{" "}
+            <Text style={styles.linkText}>Privacy Policy</Text>
           </Text>
-        </>
-      )}
-
-
-      {/* Terms */}
-      <Text style={styles.termsText}>
-        By continuing, you agree to our{" "}
-        <Text style={styles.linkText}>Terms of Service</Text> and{" "}
-        <Text style={styles.linkText}>Privacy Policy</Text>
-      </Text>
-    </View>
+        </ScrollView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -179,9 +183,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#000",
+  },
+  scrollContent: {
+    flexGrow: 1,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: 20,
+    paddingVertical: 40,
   },
   logo: {
     marginBottom: 10,
@@ -212,26 +220,21 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#222",
-    borderRadius: 10,
-    paddingHorizontal: 10,
     width: "100%",
-    marginBottom: 15,
+    marginBottom: 20,
   },
   input: {
     width: '100%',
     height: 50,
-    backgroundColor: '#1E1E1E',  // Darker background for better contrast
-    color: '#FFF',               // White text for readability
-    borderColor: '#A855F7',      // Purple border for better visibility
+    backgroundColor: '#1E1E1E',
+    color: '#FFF',
+    borderColor: '#A855F7',
     borderWidth: 1,
-    borderRadius: 12,            // Rounded corners for a modern look
-    paddingHorizontal: 15,       // Comfortable spacing inside input
-    marginBottom: 15,            // Space between inputs
-    fontSize: 16,                // Larger text for better readability
-    shadowColor: '#A855F7',      // Soft glowing shadow for an elegant touch
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    marginBottom: 15,
+    fontSize: 16,
+    shadowColor: '#A855F7',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 6,
@@ -249,39 +252,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
-  orContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 10,
-  },
-  line: {
-    flex: 1,
-    height: 1,
-    backgroundColor: "#555",
-  },
-  orText: {
-    marginHorizontal: 10,
+  switchText: {
     color: "#fff",
-  },
-  googleButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#222",
-    paddingVertical: 15,
-    borderRadius: 10,
-    width: "100%",
-    justifyContent: "center",
-    marginBottom: 15,
-  },
-  googleIcon: {
-    width: 20,
-    height: 20,
-    marginRight: 15,
-    borderRadius: 10,
-  },
-  googleText: {
-    color: "#fff",
-    fontSize: 16,
+    textAlign: "center",
+    marginBottom: 20,
   },
   termsText: {
     fontSize: 12,
@@ -293,26 +267,8 @@ const styles = StyleSheet.create({
     color: "#A855F7",
     textDecorationLine: "underline",
   },
-  phoneContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#1a1a1a",
-    padding: 10,
-    borderRadius: 10,
-    marginBottom: 15,
-  },
-  flagContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 10,
-  },
-  flagIcon: {
-    width: 30,
-    height: 20,
-    marginRight: 5,
-  },
-  countryCode: {
-    color: "white",
-    fontSize: 16,
+  googleText: {
+    color: "#fff",
+    marginBottom: 20,
   },
 });

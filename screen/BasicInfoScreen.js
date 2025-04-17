@@ -7,15 +7,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const BasicInfoScreen = () => {
   const navigation = useNavigation();
 
-  const [selectedCountry, setSelectedCountry] = useState(null);
-  const [selectedLanguage, setSelectedLanguage] = useState(null);
+  const [selectedCountry, setSelectedCountry] = useState('');
+  const [selectedLanguage, setSelectedLanguage] = useState('');
 
   useEffect(() => {
       const fetchData = async () => {
           const country = await AsyncStorage.getItem('selectedCountry');
           const language = await AsyncStorage.getItem('selectedLanguage');
-          setSelectedCountry(country);
-          setSelectedLanguage(language);
+          if (country) setSelectedCountry(country);
+          if (language) setSelectedLanguage(language);
       };
       fetchData();
   }, []);
@@ -90,6 +90,18 @@ const styles = StyleSheet.create({
     color: '#a88bf5',
     fontWeight: 'bold',
     marginBottom: 10,
+  },
+  description: {
+    fontSize: 16,
+    color: '#E0E0E0',
+    marginBottom: 10,
+    lineHeight: 24,
+  },
+  subText: {
+    fontSize: 14,
+    color: '#B0B0B0',
+    marginBottom: 20,
+    lineHeight: 20,
   },
   optionItem: {
     flexDirection: 'row',

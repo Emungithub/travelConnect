@@ -8,6 +8,7 @@ import {
   ScrollView,
   StyleSheet,
   TextInput,
+  Alert,
 } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
@@ -18,6 +19,7 @@ import ChatList from "./ChatList";
 import Profile from './Profile';
 import ExploreDetail from './ExploreDetail';
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 // Categories for filtering
 const categories = ["Recommend", "Stay", "Food", "Attractions"];
 
@@ -183,26 +185,61 @@ const QuestionsComponent = () => {
     if (!commentText.trim()) return;
 
     try {
-      // Here you would typically send the comment to your backend
-      // For now, we'll simulate it with local state
-      const newComment = {
-        id: Date.now().toString(),
-        text: commentText,
-        user: "Current User", // You would get this from your auth system
-        timestamp: new Date().toISOString(),
-      };
+      const token = await AsyncStorage.getItem('token');
+      const userId = await AsyncStorage.getItem('userId');
+      
+      if (!token || !userId) {
+        Alert.alert('Error', 'Please login to post comments');
+        return;
+      }
 
+      // Send comment to backend
+      const response = await fetch('http://192.168.35.214:3000/addComment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          post_id: questionId,
+          text: commentText
+        })
+      });
+
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          await AsyncStorage.removeItem('token');
+          await AsyncStorage.removeItem('userId');
+          throw new Error('Your session has expired. Please login again.');
+        }
+        throw new Error(responseData.error || 'Failed to post comment');
+      }
+
+      // Update local state with the new comment including user details
       setComments(prev => ({
         ...prev,
-        [questionId]: [...(prev[questionId] || []), newComment]
+        [questionId]: [...(prev[questionId] || []), {
+          id: responseData.id,
+          text: responseData.text,
+          user: responseData.name,
+          profile_image: responseData.profile_image,
+          country: responseData.country,
+          timestamp: responseData.created_at
+        }]
       }));
 
-      // Update the answer count in questionsData
+      // Fetch updated comments count from the server
+      const commentsResponse = await fetch(`http://192.168.35.214:3000/getComments/${questionId}`);
+      const commentsData = await commentsResponse.json();
+
+      // Update the answer count in questionsData with the actual count from the server
       setQuestionsData(prev => prev.map(item => {
         if (item.id === questionId) {
           return {
             ...item,
-            answers: (item.answers || 0) + 1
+            answers: commentsData.length
           };
         }
         return item;
@@ -211,8 +248,55 @@ const QuestionsComponent = () => {
       setCommentText("");
     } catch (error) {
       console.error('Error submitting comment:', error);
+      Alert.alert('Error', error.message || 'Failed to post comment. Please try again.');
     }
   };
+
+  // Function to fetch comments for a question
+  const fetchComments = async (questionId) => {
+    try {
+      const response = await fetch(`http://192.168.35.214:3000/getComments/${questionId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch comments');
+      }
+      const commentsData = await response.json();
+      
+      // Update the answer count in questionsData
+      setQuestionsData(prev => prev.map(item => {
+        if (item.id === questionId) {
+          return {
+            ...item,
+            answers: commentsData.length
+          };
+        }
+        return item;
+      }));
+
+      // Transform the comments data to include all necessary fields
+      const formattedComments = commentsData.map(comment => ({
+        id: comment.id,
+        text: comment.text,
+        user: comment.name,
+        profile_image: comment.profile_image,
+        country: comment.country,
+        timestamp: comment.created_at
+      }));
+
+      setComments(prev => ({
+        ...prev,
+        [questionId]: formattedComments
+      }));
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+    }
+  };
+
+  // Update useEffect to fetch comments when a question is selected
+  useEffect(() => {
+    if (selectedAnswer) {
+      fetchComments(selectedAnswer);
+    }
+  }, [selectedAnswer]);
 
   useFocusEffect(
     useCallback(() => {
@@ -220,8 +304,21 @@ const QuestionsComponent = () => {
         try {
           const response = await fetch('http://192.168.35.214:3000/getQuestions');
           const data = await response.json();
-          console.log("Fetched questions data:", JSON.stringify(data, null, 2));
-          setQuestionsData(data);
+          
+          // Fetch comments count for each question
+          const questionsWithAnswers = await Promise.all(
+            data.map(async (question) => {
+              const commentsResponse = await fetch(`http://192.168.35.214:3000/getComments/${question.id}`);
+              const commentsData = await commentsResponse.json();
+              return {
+                ...question,
+                answers: commentsData.length
+              };
+            })
+          );
+          
+          console.log("Fetched questions with answers:", questionsWithAnswers);
+          setQuestionsData(questionsWithAnswers);
         } catch (error) {
           console.error('Error fetching questions:', error);
         }
@@ -358,10 +455,21 @@ const QuestionsComponent = () => {
                 {(comments[item.id] || []).map(comment => (
                   <View key={comment.id} style={styles.commentItem}>
                     <View style={styles.commentHeader}>
-                      <Text style={styles.commentUser}>{comment.user}</Text>
-                      <Text style={styles.commentTime}>
-                        {new Date(comment.timestamp).toLocaleDateString()}
-                      </Text>
+                      <View style={styles.commentUserInfo}>
+                        <View style={styles.commentProfileContainer}>
+                          <Image 
+                            source={{ uri: comment.profile_image }} 
+                            style={styles.commentProfileImage} 
+                          />
+                          <Text style={styles.commentFlag}>{getEmojiFlag(comment.country)}</Text>
+                        </View>
+                        <View style={styles.commentUserDetails}>
+                          <Text style={styles.commentUserName}>{comment.user}</Text>
+                          <Text style={styles.commentTime}>
+                            {new Date(comment.timestamp).toLocaleDateString()}
+                          </Text>
+                        </View>
+                      </View>
                     </View>
                     <Text style={styles.commentText}>{comment.text}</Text>
                   </View>
@@ -814,20 +922,47 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   commentHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     marginBottom: 5,
   },
-  commentUser: {
+  commentUserInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  commentProfileContainer: {
+    position: 'relative',
+    marginRight: 10,
+  },
+  commentProfileImage: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+  },
+  commentFlag: {
+    position: 'absolute',
+    bottom: -2,
+    left: -2,
+    fontSize: 10,
+    backgroundColor: '#222',
+    borderRadius: 4,
+    padding: 1,
+  },
+  commentUserDetails: {
+    flex: 1,
+  },
+  commentUserName: {
     color: '#8A2BE2',
     fontWeight: 'bold',
+    fontSize: 14,
   },
   commentTime: {
     color: '#bbb',
     fontSize: 12,
+    marginTop: 2,
   },
   commentText: {
     color: 'white',
     fontSize: 14,
+    marginTop: 5,
+    marginLeft: 40, // Align with the username
   },
 });

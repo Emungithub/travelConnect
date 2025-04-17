@@ -165,10 +165,35 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#121212', padding: 20, alignItems: 'center', justifyContent: 'center' },
     header: { fontSize: 20, color: '#a88bf5', fontWeight: 'bold', marginBottom: 20 },
     
-    imageContainer: { width: 120, height: 120, alignItems: 'center', justifyContent: 'center' },
+    imageContainer: { width: 120, height: 120, alignItems: 'center', justifyContent: 'center', marginBottom: 30 },
     profileImage: { width: 120, height: 120, borderRadius: 60, borderWidth: 2, borderColor: '#a88bf5' },
     placeholderCircle: { width: 120, height: 120, borderRadius: 60, backgroundColor: '#444', alignItems: 'center', justifyContent: 'center' },
     placeholderText: { fontSize: 40, color: '#fff', fontWeight: 'bold' },
+
+    saveButton: {
+        width: '100%',
+        paddingVertical: 15,
+        borderRadius: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 20,
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+    },
+    activeSaveButton: {
+        backgroundColor: '#a88bf5',
+    },
+    disabledSaveButton: {
+        backgroundColor: '#333',
+    },
+    saveButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
 
     modalBackground: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.6)', justifyContent: 'center', alignItems: 'center' },
     modalContainer: { width: '90%', backgroundColor: '#222', padding: 20, borderRadius: 10, alignItems: 'center' },
