@@ -26,6 +26,27 @@ db.connect((err) => {
         return;
     }
     console.log('Connected to MySQL database.');
+
+    // Create comments table if it doesn't exist
+    const createCommentsTableSQL = `
+        CREATE TABLE IF NOT EXISTS comments (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            post_id INT NOT NULL,
+            user_id INT NOT NULL,
+            text TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+    `;
+
+    db.query(createCommentsTableSQL, (err) => {
+        if (err) {
+            console.error('Error creating comments table:', err);
+            return;
+        }
+        console.log('Comments table created or already exists');
+    });
 });
 
 // ==============================
@@ -270,9 +291,104 @@ app.post('/saveUserData', (req, res) => {
     });
 });
 
+// Add Comment Endpoint
+app.post('/addComment', authenticateToken, (req, res) => {
+    const { post_id, text } = req.body;
+    const user_id = req.user.id; // Get user_id from the authenticated token
 
+    if (!post_id || !text) {
+        return res.status(400).json({ error: 'Post ID and comment text are required.' });
+    }
 
+    const sql = `
+        INSERT INTO comments (post_id, user_id, text)
+        VALUES (?, ?, ?)
+    `;
 
+    db.query(sql, [post_id, user_id, text], (err, result) => {
+        if (err) {
+            console.error('❌ Database Error:', err);
+            return res.status(500).json({ error: 'Failed to save comment.' });
+        }
 
+        // Get the comment with user details
+        const getCommentSQL = `
+            SELECT c.*, u.name, u.profile_image, u.country
+            FROM comments c
+            JOIN users u ON c.user_id = u.id
+            WHERE c.id = ?
+        `;
+
+        db.query(getCommentSQL, [result.insertId], (err, results) => {
+            if (err) {
+                console.error('❌ Error fetching comment:', err);
+                return res.status(500).json({ error: 'Failed to fetch comment details.' });
+            }
+
+            console.log('✅ Comment saved successfully:', results[0]);
+            res.status(201).json(results[0]);
+        });
+    });
+});
+
+// Get Comments Endpoint
+app.get('/getComments/:postId', (req, res) => {
+    const { postId } = req.params;
+
+    const sql = `
+        SELECT c.*, u.name, u.profile_image, u.country
+        FROM comments c
+        JOIN users u ON c.user_id = u.id
+        WHERE c.post_id = ?
+        ORDER BY c.created_at DESC
+    `;
+
+    db.query(sql, [postId], (err, results) => {
+        if (err) {
+            console.error('❌ Error fetching comments:', err);
+            return res.status(500).json({ error: 'Failed to fetch comments.' });
+        }
+
+        console.log('✅ Comments fetched successfully:', results);
+        res.json(results);
+    });
+});
+
+// Add Post with Images Endpoint
+app.post('/addPostWithImages', authenticateToken, (req, res) => {
+    const { title, description, images, priority } = req.body;
+    const user_id = req.user.id; // Get user_id from the authenticated token
+
+    if (!title || !description) {
+        return res.status(400).json({ error: 'Title and description are required.' });
+    }
+
+    // Log incoming data for debugging
+    console.log('📥 Incoming Post Data:', { user_id, title, description, images, priority });
+
+    const insertPostSQL = `
+        INSERT INTO posts (title, description, user_id, priority, images)
+        VALUES (?, ?, ?, ?, ?)
+    `;
+
+    // Convert images array to JSON string for storage
+    const imagesJson = JSON.stringify(images || []);
+
+    db.query(insertPostSQL, [title, description, user_id, priority, imagesJson], (err, result) => {
+        if (err) {
+            console.error('❌ Database Error:', err);
+            return res.status(500).json({ 
+                error: 'Failed to save post.',
+                details: err.message 
+            });
+        }
+
+        console.log('✅ Post saved successfully with images');
+        res.status(201).json({ 
+            message: 'Post added successfully!', 
+            postId: result.insertId
+        });
+    });
+});
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

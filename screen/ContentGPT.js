@@ -176,12 +176,12 @@ Use appropriate emojis throughout the text to make it more engaging and visually
             console.log("Extracted description:", extractedDescription);
             
             try {
-                // Navigate to AskLocalScreen with the extracted data
+                // Navigate to AskLocalScreen with the extracted data for New Post
                 navigation.navigate('AskLocal', {
                     title: extractedTitle,
                     description: extractedDescription,
                     button: "Post",
-                    bigTitle: "Create Post"
+                    bigTit: "New Post"  // Changed from bigTitle to bigTit
                 });
                 console.log("Navigation successful");
             } catch (error) {
@@ -217,7 +217,7 @@ Use appropriate emojis throughout the text to make it more engaging and visually
                         title: fallbackTitle,
                         description: fallbackDescription,
                         button: "Post",
-                        bigTitle: "Create Post"
+                        bigTit: "New Post"  // Changed from bigTitle to bigTit
                     });
                     console.log("Navigation successful with fallback");
                 } catch (error) {

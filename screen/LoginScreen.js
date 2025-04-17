@@ -15,14 +15,13 @@ export default function LoginScreen({ }) {
   const [isLogin, setIsLogin] = useState(true); // State to toggle between login and register
 
   // Check for stored user ID on component mount
-
-  //TODO: Add recommendations screen, log out server.js
-  //useEffect to navigate to explorescreen if user is logged in
   useEffect(() => {
     const checkUserLogin = async () => {
       const userId = await AsyncStorage.getItem('userId');
-      if (userId) {
-        navigation.navigate('Explore'); // Navigate to ExploreScreen if user is logged in
+      const token = await AsyncStorage.getItem('token');
+      console.log('Stored auth data:', { userId, token });
+      if (userId && token) {
+        navigation.navigate('Explore');
       }
     };
     checkUserLogin();
@@ -69,32 +68,39 @@ export default function LoginScreen({ }) {
       });
 
       const data = await response.json();
-      console.log("🧠 data ID:", data);
+      console.log("Login Response Data:", data);
+      
       if (response.ok) {
-
-        await AsyncStorage.setItem('userEmail', email); // ✅ Save the email
-        await AsyncStorage.setItem('userId', data.id.toString()); // ✅ this is what you need
-
+        // Store authentication data
+        await AsyncStorage.setItem('userEmail', email);
+        await AsyncStorage.setItem('userId', data.id.toString());
+        await AsyncStorage.setItem('token', data.token);
+        
+        // Verify token was stored
+        const storedToken = await AsyncStorage.getItem('token');
+        console.log("Stored Token:", storedToken);
+        
         Alert.alert('Success', 'Login successful!');
         navigation.navigate('BasicInfo');
-        // // Check if the user has already chosen a recommendation
-        // const hasChosenRecommendation = await AsyncStorage.getItem('hasChosenRecommendation');
-        // if (hasChosenRecommendation) {
-        //   navigation.navigate('Explore');
-        // } else {
-        //   navigation.navigate('BasicInfo');
-        // }
       } else {
         Alert.alert('Error', data.error);
-
       }
     } catch (error) {
+      console.error("Login Error:", error);
       Alert.alert('Error', 'Login failed');
-      console.log("🧠 Registered user ID:", error);
-      console.log("🧠 data:", data);
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem('userEmail');
+      await AsyncStorage.removeItem('userId');
+      await AsyncStorage.removeItem('token');
+      navigation.navigate('Login');
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  };
 
   return (
     <View style={styles.container}>

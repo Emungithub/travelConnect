@@ -12,16 +12,12 @@ import {
 } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { useNavigation, useRoute } from "@react-navigation/native";
-import MapView, { Marker } from "react-native-maps";
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import 'react-native-get-random-values';
-import { v4 as uuidv4 } from 'uuid';
 import { KeyboardAvoidingView, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { GOOGLE_PLACES_API_KEY } from "@env";
 import { Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
 
 
 const AskLocalScreen = ({ navigation, route }) => {
@@ -33,16 +29,13 @@ const AskLocalScreen = ({ navigation, route }) => {
   const [title, setTitle] = useState(route.params?.title || "");
   const [description, setDescription] = useState(route.params?.description || "");
   const [images, setImages] = useState([]);
-  const [showSimilarQuestions, setShowSimilarQuestions] = useState(false);
   const [showPriorityModal, setShowPriorityModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showMapModal, setShowMapModal] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
-  const [selectedQuestion, setSelectedQuestion] = useState(null);
   const [priorityLevel, setPriorityLevel] = useState("Medium");
   const [buttonText, setButtonText] = useState(route.params?.button || "Ask");
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [selectedOption, setSelectedOption] = useState(null);
+
 
   const openAiApiKey = process.env.OPENAI_API_KEY;
 
@@ -187,22 +180,53 @@ If there's any mention of immediate need or current location, prioritize that ov
   
   const handleSubmit = async () => {
     if (!title || !description) {
-      Alert.alert('Error', 'Please fill in all fields');
-      return;
+        Alert.alert('Error', 'Please fill in all fields');
+        return;
     }
 
     try {
-      console.log("Analyzing priority for:", { title, description });
-      const priorityLevel = await analyzePriorityLevel(title, description);
-      console.log("Final Priority Level:", priorityLevel);
+        // Get the token from AsyncStorage
+        const token = await AsyncStorage.getItem('token');
+        if (!token) {
+            Alert.alert('Error', 'Please login to post');
+            return;
+        }
 
-      // Set the priority level and show the modal
-      setPriorityLevel(priorityLevel);
-      setShowPriorityModal(true);
+        // Prepare the post data
+        const postData = {
+            title,
+            description,
+            images: images.map(image => image.uri), // Convert image objects to URIs
+            priority: priorityLevel
+        };
 
+        console.log('📤 Sending post data:', postData);
+
+        const response = await fetch('http://172.30.1.98:3000/addPostWithImages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(postData)
+        });
+
+        const data = await response.json();
+        console.log('📥 Server response:', data);
+
+        if (response.ok) {
+            setShowSuccessModal(true);
+            // Clear the form
+            setTitle('');
+            setDescription('');
+            setImages([]);
+            setPriorityLevel('Medium');
+        } else {
+            Alert.alert('Error', data.error || 'Failed to save post');
+        }
     } catch (error) {
-      console.error('Error:', error);
-      Alert.alert('Error', 'Failed to analyze priority');
+        console.error('❌ Error submitting post:', error);
+        Alert.alert('Error', 'Failed to connect to server');
     }
   };
 
@@ -268,6 +292,34 @@ If there's any mention of immediate need or current location, prioritize that ov
     }
   };
 
+  const pickImage = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission required', 'Please grant camera roll permissions to upload images');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.5,
+      });
+
+      if (!result.canceled) {
+        setImages([...images, result.assets[0].uri]);
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'Failed to pick image');
+    }
+  };
+
+  const removeImage = (index) => {
+    setImages(images.filter((_, i) => i !== index));
+  };
+
   return (
     <KeyboardAvoidingView 
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -278,14 +330,14 @@ If there's any mention of immediate need or current location, prioritize that ov
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <FontAwesome5 name="arrow-left" size={20} color="white" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{route.params?.bigTitle || "Ask Local"}</Text>
+        <Text style={styles.headerTitle}>{route.params?.bigTit || "Ask Local"}</Text>
       </View>
 
       <ScrollView 
         style={styles.contentContainer}
         keyboardShouldPersistTaps="handled"
       >
-        {route.params?.title === "New Post" && (
+        {route.params?.bigTit === "New Post" && (
           <FlatList
             data={[...images, "add_button"]}
             keyExtractor={(item, index) => index.toString()}
@@ -430,7 +482,17 @@ If there's any mention of immediate need or current location, prioritize that ov
       <View style={styles.bottomActions}>
         <TouchableOpacity
           style={styles.contentGptButton}
-          onPress={() => navigation.navigate('ContentGPT')}
+          onPress={() => {
+            if (route.params?.bigTit === "New Post") {
+              navigation.navigate('ContentGPT', { 
+                title: title,
+                description: description,
+                isNewPost: true
+              });
+            } else {
+              navigation.navigate('ContentGPT');
+            }
+          }}
         >
           <View style={styles.iconContainer}>
             <FontAwesome5 name="magic" size={14} color="white" />
