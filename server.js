@@ -47,6 +47,27 @@ db.connect((err) => {
         }
         console.log('Comments table created or already exists');
     });
+
+    // Create explore_posts table if it doesn't exist
+    const createExplorePostsTableSQL = `
+        CREATE TABLE IF NOT EXISTS explore_posts (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT NOT NULL,
+            title VARCHAR(255) NOT NULL,
+            description TEXT NOT NULL,
+            images JSON,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+    `;
+
+    db.query(createExplorePostsTableSQL, (err) => {
+        if (err) {
+            console.error('Error creating explore_posts table:', err);
+            return;
+        }
+        console.log('Explore posts table created or already exists');
+    });
 });
 
 // ==============================
@@ -470,7 +491,17 @@ app.post('/addExplorePost', authenticateToken, async (req, res) => {
 app.get('/getExplorePosts', async (req, res) => {
   try {
     const query = `
-      SELECT ep.*, u.name, u.profile_image, u.country
+      SELECT 
+        ep.id,
+        ep.title,
+        ep.description,
+        ep.images,
+        ep.created_at,
+        u.id as user_id,
+        u.name as user,
+        u.profile_image,
+        u.country,
+        u.language
       FROM explore_posts ep
       JOIN users u ON ep.user_id = u.id
       ORDER BY ep.created_at DESC
@@ -482,13 +513,55 @@ app.get('/getExplorePosts', async (req, res) => {
         return res.status(500).json({ error: 'Failed to fetch posts' });
       }
 
-      // Parse the JSON string of images back to an array for each post
-      const postsWithParsedImages = results.map(post => ({
-        ...post,
-        images: JSON.parse(post.images || '[]')
-      }));
+      // Log raw results
+      console.log('Raw database results:', results[0]);
 
-      console.log('Explore posts fetched successfully');
+      // Transform the results to handle file paths
+      const postsWithParsedImages = results.map(post => {
+        console.log('Processing post:', post.id);
+        console.log('Raw images field:', post.images);
+        
+        let parsedImages = [];
+        if (post.images) {
+          try {
+            // If it's already an array, use it directly
+            if (Array.isArray(post.images)) {
+              parsedImages = post.images;
+            } else {
+              // Try to parse JSON string
+              parsedImages = JSON.parse(post.images);
+            }
+            console.log('Parsed images:', parsedImages);
+          } catch (e) {
+            console.error('Error parsing images for post', post.id, ':', e);
+            // If parsing fails, try to handle it as a single image path
+            if (typeof post.images === 'string') {
+              parsedImages = [post.images];
+            }
+          }
+        }
+
+        // Ensure all paths are valid
+        const formattedImages = parsedImages
+          .filter(img => img) // Remove null/empty values
+          .map(img => {
+            // Handle file paths
+            if (typeof img === 'string') {
+              return img.startsWith('/var/mobile/Containers/') ? `file://${img}` : img;
+            }
+            return null;
+          })
+          .filter(img => img); // Remove any null values after processing
+
+        console.log('Formatted images:', formattedImages);
+
+        return {
+          ...post,
+          images: formattedImages
+        };
+      });
+
+      console.log('First processed post:', postsWithParsedImages[0]);
       res.json(postsWithParsedImages);
     });
   } catch (error) {

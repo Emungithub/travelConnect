@@ -9,6 +9,7 @@ import {
   StyleSheet,
   TextInput,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
@@ -80,10 +81,95 @@ const exploreData = [
   },
 ];
 
+// Add getEmojiFlag function
+const getEmojiFlag = (country) => {
+  const map = {
+    "USA": "🇺🇸",
+    "UK": "🇬🇧",
+    "China": "🇨🇳",
+    "Japan": "🇯🇵",
+    "Korea": "🇰🇷",
+    "South Korea": "🇰🇷",
+    "France": "🇫🇷",
+    "Germany": "🇩🇪",
+    "Italy": "🇮🇹",
+    "Spain": "🇪🇸",
+    "Malaysia": "🇲🇾",
+    "Indonesia": "🇮🇩",
+    // Add more countries as needed
+  };
+
+  return map[country?.trim()] || "🌍"; // default: globe
+};
+
 const ExploreComponent = () => {
   const navigation = useNavigation();
   const [selectedCategory, setSelectedCategory] = useState("Recommend");
   const [searchQuery, setSearchQuery] = useState("");
+  const [exploreData, setExploreData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch explore data from the database
+  useFocusEffect(
+    useCallback(() => {
+      const fetchExploreData = async () => {
+        try {
+          setLoading(true);
+          const response = await fetch('http://192.168.35.214:3000/getExplorePosts');
+          if (!response.ok) {
+            throw new Error('Failed to fetch explore posts');
+          }
+          const data = await response.json();
+          console.log('Raw data from server:', data[0]); // Log first post's raw data
+          
+          // Transform the data to match our existing structure
+          const formattedData = data.map(post => {
+            // Debug logs
+            console.log('Post ID:', post.id);
+            console.log('Raw images data:', post.images);
+            console.log('Images type:', typeof post.images);
+            console.log('Is images an array?', Array.isArray(post.images));
+            
+            // Handle image processing
+            let mainImage;
+            if (Array.isArray(post.images) && post.images.length > 0) {
+              console.log('First image path:', post.images[0]);
+              mainImage = { uri: post.images[0].replace(/^file:\/\//, '') };
+            } else {
+              console.log('Using default image');
+              mainImage = require("../assets/explore/1.png");
+            }
+
+            const formattedPost = {
+              id: post.id.toString(),
+              title: post.title,
+              description: post.description,
+              image: mainImage,
+              user: post.user,
+              profileImage: post.profile_image ? { uri: post.profile_image } : require("../assets/explore/solotravel.png"),
+              country: post.country,
+              language: post.language,
+              rating: "90%",
+              images: Array.isArray(post.images) ? post.images.map(img => ({ uri: img.replace(/^file:\/\//, '') })) : []
+            };
+
+            console.log('Formatted post image:', formattedPost.image);
+            return formattedPost;
+          });
+
+          console.log("First formatted post:", formattedData[0]);
+          setExploreData(formattedData);
+        } catch (error) {
+          console.error('Error fetching explore data:', error);
+          Alert.alert('Error', 'Failed to load explore posts. Please try again later.');
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchExploreData();
+    }, [])
+  );
 
   // Filter explore data based on search query
   const filteredExploreData = exploreData.filter(item => {
@@ -128,29 +214,44 @@ const ExploreComponent = () => {
         ))}
       </View>
 
-      {/* 🔥 Use `FlatList` Without `ScrollView` */}
-      <FlatList
-        key={selectedCategory}
-        numColumns={2}
-        data={exploreData}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity style={styles.card} onPress={() => navigation.navigate("ExploreDetail", { item })}>
-            <Image source={item.image} style={styles.image} />
-            <Text style={styles.title}>{item.title}</Text>
-            <View style={styles.userContainer}>
-              <Image source={item.profileImage} style={styles.profileImageSmall} />
-              <Text style={styles.user}>{item.user}</Text>
-              <View style={styles.ratingContainer}>
-                <FontAwesome5 name="arrow-up" size={12} color="#32CD32" />
-                <Text style={styles.rating}>{item.rating}</Text>
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#8A2BE2" />
+        </View>
+      ) : filteredExploreData.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>No posts found</Text>
+        </View>
+      ) : (
+        <FlatList
+          key={selectedCategory}
+          numColumns={2}
+          data={filteredExploreData}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <TouchableOpacity 
+              style={styles.card} 
+              onPress={() => navigation.navigate("ExploreDetail", { item })}
+            >
+              <Image source={item.image} style={styles.image} />
+              <Text style={styles.title}>{item.title}</Text>
+              <View style={styles.userContainer}>
+                <View style={styles.profileContainer}>
+                  <Image source={item.profileImage} style={styles.profileImageSmall} />
+                  <Text style={styles.flagIconSmall}>{getEmojiFlag(item.country)}</Text>
+                </View>
+                <Text style={styles.user}>{item.user}</Text>
+                <View style={styles.ratingContainer}>
+                  <FontAwesome5 name="arrow-up" size={12} color="#32CD32" />
+                  <Text style={styles.rating}>{item.rating}</Text>
+                </View>
               </View>
-            </View>
-          </TouchableOpacity>
-        )}
-        columnWrapperStyle={styles.columnWrapper}
-        contentContainerStyle={{ paddingBottom: 5 }}
-      />
+            </TouchableOpacity>
+          )}
+          columnWrapperStyle={styles.columnWrapper}
+          contentContainerStyle={{ paddingBottom: 5 }}
+        />
+      )}
     </View>
   );
 };
@@ -327,26 +428,6 @@ const QuestionsComponent = () => {
       fetchQuestions();
     }, [])
   );
-
-  const getEmojiFlag = (country) => {
-    const map = {
-      "USA": "🇺🇸",
-      "UK": "🇬🇧",
-      "China": "🇨🇳",
-      "Japan": "🇯🇵",
-      "Korea": "🇰🇷",
-      "South Korea": "🇰🇷",
-      "France": "🇫🇷",
-      "Germany": "🇩🇪",
-      "Italy": "🇮🇹",
-      "Spain": "🇪🇸",
-      "Malaysia": "🇲🇾",
-      "Indonesia": "🇮🇩",
-      // Add more as needed
-    };
-
-    return map[country?.trim()] || "🌍"; // default: globe
-  };
 
   return (
     <ScrollView style={styles.container}>
@@ -649,12 +730,22 @@ const styles = StyleSheet.create({
     margin: 10,
   },
   profileContainer: {
-    position: "relative",
+    position: 'relative',
+    marginRight: 5,
   },
   profileImage: {
     width: 40,
     height: 40,
     borderRadius: 20,
+  },
+  flagIconSmall: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    fontSize: 7,
+    backgroundColor: '#222',
+    borderRadius: 3,
+    padding: 1,
   },
   flagIcon: {
     width: 15,
@@ -665,10 +756,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   profileImageSmall: {
-    width: 14,
-    height: 14,
-    borderRadius: 14,
-    marginRight: 5,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
   },
   profileImageQuestion: {
     width: 53,
@@ -964,5 +1054,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 5,
     marginLeft: 40, // Align with the username
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 20,
+  },
+  emptyText: {
+    color: '#bbb',
+    fontSize: 16,
   },
 });
