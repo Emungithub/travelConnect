@@ -205,7 +205,7 @@ If there's any mention of immediate need or current location, prioritize that ov
         console.log("Sending explore post data:", postData);
 
         try {
-          const response = await fetch('http://172.30.1.49:3000/addExplorePost', {
+          const response = await fetch('http://192.168.35.47:3000/addExplorePost', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -274,7 +274,7 @@ If there's any mention of immediate need or current location, prioritize that ov
 
             console.log("Sending regular question data with priority:", questionData);
 
-            const response = await fetch('http://172.30.1.49:3000/addPost', {
+            const response = await fetch('http://192.168.35.47:3000/addPost', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -575,33 +575,26 @@ If there's any mention of immediate need or current location, prioritize that ov
         </View>
       </Modal>
       {/* Success Modal */}
-      <Modal visible={showSuccessModal} animationType="fade" transparent={true}>
-        <View style={styles.modalContainer}>
-          <View style={[styles.modalContent, { borderColor: '#4CAF50' }]}>
-            <View style={[styles.priorityHeader, { backgroundColor: '#4CAF50' }]}>
-              <TouchableOpacity 
-                style={styles.closeButton}
-                onPress={() => setShowSuccessModal(false)}
-              >
-                <FontAwesome5 name="times" size={20} color="white" />
-              </TouchableOpacity>
-              <Text style={styles.modalTitle}>Success!</Text>
-            </View>
-            <View style={styles.modalBody}>
-              <View style={styles.successIconContainer}>
-                <FontAwesome5 name="check-circle" size={60} color="#4CAF50" />
-              </View>
-              <Text style={styles.modalDescription}>Your question has been posted successfully!</Text>
-              <TouchableOpacity 
-                style={[styles.postButton, { marginTop: 20 }]} 
-                onPress={() => {
-                  setShowSuccessModal(false);
-                  navigation.navigate('Explore');
-                }}
-              >
-                <Text style={styles.postButtonText}>Continue</Text>
-              </TouchableOpacity>
-            </View>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={showSuccessModal}
+        onRequestClose={() => setShowSuccessModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.successModalContent}>
+            <FontAwesome5 name="check-circle" size={50} color="#8A2BE2" />
+            <Text style={styles.successModalTitle}>Success!</Text>
+            <Text style={styles.successModalText}>Your question has been posted successfully.</Text>
+            <TouchableOpacity 
+              style={styles.successModalButton}
+              onPress={() => {
+                setShowSuccessModal(false);
+                navigation.goBack();
+              }}
+            >
+              <Text style={styles.successModalButtonText}>Go Back</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -852,15 +845,44 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
-  successIconContainer: {
+  successModalButton: {
+    backgroundColor: '#8A2BE2',
+    padding: 15,
+    borderRadius: 10,
     alignItems: 'center',
-    marginBottom: 20,
+    marginTop: 20,
+    width: '100%'
   },
-  closeButton: {
-    position: 'absolute',
-    right: 15,
-    top: 15,
-    zIndex: 1,
+  successModalButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center'
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+  },
+  successModalContent: {
+    backgroundColor: '#222',
+    padding: 20,
+    borderRadius: 10,
+    width: '80%',
+    alignItems: 'center',
+  },
+  successModalTitle: {
+    color: 'white',
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  successModalText: {
+    color: '#bbb',
+    fontSize: 16,
+    marginBottom: 20,
+    textAlign: 'center',
   },
 });
 

@@ -42,7 +42,7 @@ export default function LoginScreen({ }) {
     console.log("Attempting to Register...");
 
     try {
-      const response = await fetch('http://172.30.1.49:3000/register', {
+      const response = await fetch('http://192.168.35.47:3000/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -70,7 +70,7 @@ export default function LoginScreen({ }) {
 
   const handleLogin = async () => {
     try {
-      const response = await fetch('http://172.30.1.49:3000/login', {
+      const response = await fetch('http://192.168.35.47:3000/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })

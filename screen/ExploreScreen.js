@@ -65,7 +65,7 @@ const ExploreComponent = () => {
 
       console.log('Sending vote request:', { postId, voteType });
 
-      const response = await fetch('http://172.30.1.49:3000/votePost', {
+      const response = await fetch('http://192.168.35.47:3000/votePost', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -114,7 +114,7 @@ const ExploreComponent = () => {
       const fetchExploreData = async () => {
         try {
           setLoading(true);
-          const response = await fetch('http://172.30.1.49:3000/getExplorePosts');
+          const response = await fetch('http://192.168.35.47:3000/getExplorePosts');
           if (!response.ok) {
             throw new Error('Failed to fetch explore posts');
           }
@@ -298,7 +298,7 @@ const QuestionsComponent = () => {
       }
 
       // Send comment to backend
-      const response = await fetch('http://172.30.1.49:3000/addComment', {
+      const response = await fetch('http://192.168.35.47:3000/addComment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -335,7 +335,7 @@ const QuestionsComponent = () => {
       }));
 
       // Fetch updated comments count from the server
-      const commentsResponse = await fetch(`http://172.30.1.49:3000/getComments/${questionId}`);
+      const commentsResponse = await fetch(`http://192.168.35.47:3000/getComments/${questionId}`);
       const commentsData = await commentsResponse.json();
 
       // Update the answer count in questionsData with the actual count from the server
@@ -359,7 +359,7 @@ const QuestionsComponent = () => {
   // Function to fetch comments for a question
   const fetchComments = async (questionId) => {
     try {
-      const response = await fetch(`http://172.30.1.49:3000/getComments/${questionId}`);
+      const response = await fetch(`http://192.168.35.47:3000/getComments/${questionId}`);
       if (!response.ok) {
         throw new Error('Failed to fetch comments');
       }
@@ -406,13 +406,13 @@ const QuestionsComponent = () => {
     useCallback(() => {
       const fetchQuestions = async () => {
         try {
-          const response = await fetch('http://172.30.1.49:3000/getQuestions');
+          const response = await fetch('http://192.168.35.47:3000/getQuestions');
           const data = await response.json();
           
           // Fetch comments count for each question
           const questionsWithAnswers = await Promise.all(
             data.map(async (question) => {
-              const commentsResponse = await fetch(`http://172.30.1.49:3000/getComments/${question.id}`);
+              const commentsResponse = await fetch(`http://192.168.35.47:3000/getComments/${question.id}`);
               const commentsData = await commentsResponse.json();
               return {
                 ...question,
