@@ -34,7 +34,7 @@ const Profile = () => {
       }
 
       console.log('Fetching user profile for email:', email);
-      const response = await fetch(`http://192.168.35.214:3000/getUserProfile?email=${encodeURIComponent(email)}`, {
+      const response = await fetch(`http://172.30.1.49:3000/getUserProfile?email=${encodeURIComponent(email)}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

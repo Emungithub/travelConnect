@@ -25,7 +25,7 @@ const PaymentScreen = ({ route }) => {
         priorityType: typeof postData.priority
       });
 
-      const response = await fetch('http://192.168.35.214:3000/addPost', {  // Changed to addPost endpoint
+      const response = await fetch('http://172.30.1.49:3000/addPost', {  // Changed to addPost endpoint
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json'

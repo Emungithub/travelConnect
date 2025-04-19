@@ -205,7 +205,7 @@ If there's any mention of immediate need or current location, prioritize that ov
         console.log("Sending explore post data:", postData);
 
         try {
-          const response = await fetch('http://192.168.35.214:3000/addExplorePost', {
+          const response = await fetch('http://172.30.1.49:3000/addExplorePost', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -274,7 +274,7 @@ If there's any mention of immediate need or current location, prioritize that ov
 
             console.log("Sending regular question data with priority:", questionData);
 
-            const response = await fetch('http://192.168.35.214:3000/addPost', {
+            const response = await fetch('http://172.30.1.49:3000/addPost', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
