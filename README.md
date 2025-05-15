@@ -3,6 +3,12 @@
 ## 📌 Introduction
 **TravelConnect** is a travel platform designed to bridge the gap between travelers and locals. The platform provides real-time, location-specific insights, fostering community-driven engagement and personalized travel experiences. 
 
+![屏幕截图 2025-05-15 165532](https://github.com/user-attachments/assets/7d5e8e30-4e17-495d-a777-fc0c69339f74)
+![屏幕截图 2025-05-15 165526](https://github.com/user-attachments/assets/f62b98a1-7897-4baa-a6c8-43f1239e4861)
+![Uploading 屏幕截图 2025-05-15 165519.png…]()
+![Uploading travel_connect.png…]()
+
+
 ## 🚀 Features
 - **Q&A Section** – Travelers can ask and receive answers from locals or other travelers.
 - **Blog & Travel Stories** – Share and read travel experiences, tips, and recommendations.
